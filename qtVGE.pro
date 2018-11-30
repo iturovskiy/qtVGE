@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = qtVGR
+TARGET = qtVGE
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -25,14 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        qtvgrmainwindow.cpp \
-    vgrline.cpp
+    vgeline.cpp \
+    qtvgemainwindow.cpp
 
 HEADERS += \
-        qtvgrmainwindow.h \
-    vgrshape.h \
     configs.h \
-    vgrline.h
+    vgeshape.h \
+    vgeline.h \
+    qtvgemainwindow.h
 
 FORMS += \
-        qtvgrmainwindow.ui
+    qtvgemainwindow.ui

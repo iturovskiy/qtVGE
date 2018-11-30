@@ -1,24 +1,27 @@
-#ifndef VGRLINE_H
-#define VGRLINE_H
+#ifndef VGELINE_H
+#define VGELINE_H
 
-#include "vgrshape.h"
+#include "vgeshape.h"
 
 
-namespace vgr {
-class vgrLine;
+namespace vge {
+class VGELine;
+
+void brasenhamLine(int x0, int y0, int x1, int y1, QVector<QPoint> &line);
 }
 
 
-namespace vgr {
+namespace vge {
 
-class vgrLine : public vgrShape {
+class VGELine : public VGEShape {
     Q_OBJECT
 
 public:
 
-    vgrLine(QObject *parent = nullptr);
+    explicit VGELine(QObject *parent = nullptr, const QColor &color = SHAPE_DEFAULT_COLOR) :
+        VGEShape(parent, color) {}
 
-    virtual ~vgrLine();
+    virtual ~VGELine() override;
 
     virtual void move(QPointF vec) override;
 
@@ -34,9 +37,9 @@ public:
 
     QPoint getSP() const;
 
-    void setFP(const Point & point);
+    void setFP(const QPoint & point);
 
-    void setSP(const Point & point);
+    void setSP(const QPoint & point);
 
 
 protected:
@@ -51,6 +54,6 @@ private:
 
 };
 
-}
+} // namespace vge
 
-#endif // VGRLINE_H
+#endif // VGELINE_H

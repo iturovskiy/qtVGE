@@ -1,7 +1,10 @@
 #ifndef CONFIGS_H
 #define CONFIGS_H
 
-namespace vgr {
+#include <QColor>
+
+
+namespace vge {
 
     // 150ppi A4
     const int IMAGE_H = 1754;
@@ -35,6 +38,8 @@ namespace vgr {
         Rectangle,
         Hypocycloid
     };
+
+    const int DEFAULT_WIDTH = 2;
 
     // default background color
     const QColor BG_DEFAULT_COLOR(0xFF, 0xFF, 0xFF, 0xFF); // white

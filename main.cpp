@@ -1,10 +1,10 @@
-#include "qtvgrmainwindow.h"
+#include "qtvgemainwindow.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    qtVGRMainWindow w;
+    qtVGEMainWindow w;
     w.show();
     return a.exec();
 }

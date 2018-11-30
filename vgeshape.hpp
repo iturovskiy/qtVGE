@@ -1,25 +1,28 @@
-#ifndef VGRSHAPE_H
-#define VGRSHAPE_H
+#ifndef VGESHAPE_H
+#define VGESHAPE_H
 
 #include <QObject>
+#include <QWidget>
 #include "configs.h"
 
 
-namespace vgr {
-class vgrShape;
+namespace vge {
+class VGEShape;
 }
 
-namespace vgr {
 
-class vgrShape : public QObject {
+namespace vge {
+
+class VGEShape : public QObject {
     Q_OBJECT
 
 public:
 
-    explicit vgrShape(QObject *parent = nullptr, QColor color = vgr::SHAPE_DEFAULT_COLOR,
-                      int width = 2) : QObject(parent), _color(color), _width(width) {}
+    explicit VGEShape(QObject *parent = nullptr,
+                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
+                      QObject(parent), _color(color) {}
 
-    virtual ~vgrShape()
+    virtual ~VGEShape()
     { delete _shapePoints; }
 
     virtual void move(QPointF vec) = 0;
@@ -48,9 +51,6 @@ public:
     void setColor(const QColor &newColor)
     { _color = newColor; draw(); }
 
-    void setWidth(int width)
-    { _width = width; draw(); }
-
 
 protected:
 
@@ -60,7 +60,7 @@ protected:
 protected:
 
     QColor _color;
-    int _width;
+    const int _width = DEFAULT_WIDTH;
     QVector<QPoint> * _shapePoints = new QVector<QPoint>;
     bool _isMousePressed = false;
     bool _isSelected = false;
@@ -75,6 +75,6 @@ public slots:
 };
 
 
-}
+} // namespace vge
 
-#endif // VGRSHAPE_H
+#endif // VGESHAPE_H
