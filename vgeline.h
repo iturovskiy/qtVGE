@@ -1,59 +1,59 @@
 #ifndef VGELINE_H
 #define VGELINE_H
 
-#include "vgeshape.h"
+#include "vgeshape.hpp"
 
 
-namespace vge {
 class VGELine;
 
-void brasenhamLine(int x0, int y0, int x1, int y1, QVector<QPoint> &line);
-}
+void bresenhamLine(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line);
 
-
-namespace vge {
 
 class VGELine : public VGEShape {
     Q_OBJECT
 
 public:
+    explicit VGELine(QObject *parent = nullptr,
+                     QColor color = vge::SHAPE_DEFAULT_COLOR) :
+                     VGEShape(parent, color) {}
 
-    explicit VGELine(QObject *parent = nullptr, const QColor &color = SHAPE_DEFAULT_COLOR) :
-        VGEShape(parent, color) {}
+    explicit VGELine(QObject *parent, QColor color,
+                     QPointF firstPoint, QPointF lastPoint);
 
-    virtual ~VGELine() override;
+    void move(QPointF displacement) override;
 
-    virtual void move(QPointF vec) override;
+    void handleMousePressEvent(QMouseEvent *event) override;
 
-    virtual void handleMousePressEvent(QMouseEvent * event) override;
+    void handleMouseMoveEvent(QMouseEvent *event) override;
 
-    virtual void handleMouseMoveEvent(QMouseEvent * event) override;
+    void handleMouseReleaseEvent(QMouseEvent *event) override;
 
-    virtual void handleMouseReleaseEvent(QMouseEvent * event) override;
+    VGERShape& getRaster() override;
 
-    virtual bool isReady() override;
+    QString str() const override;
 
-    QPoint getFP() const;
+    inline QPointF getFP() const
+    { return _firstPoint; }
 
-    QPoint getSP() const;
+    inline QPointF getSP() const
+    { return _lastPoint; }
 
-    void setFP(const QPoint & point);
+    void setFP(const QPointF &point)
+    { _firstPoint = point; draw(); }
 
-    void setSP(const QPoint & point);
+    void setLP(const QPointF &point)
+    { _lastPoint = point; draw(); }
 
 
 protected:
-
-    virtual void draw() override;
+    void draw() override;
 
 
 private:
-
-    QPoint _firstPoint;
-    QPoint _secondPoint;
+    QPointF _firstPoint;
+    QPointF _lastPoint;
 
 };
 
-} // namespace vge
 
 #endif // VGELINE_H

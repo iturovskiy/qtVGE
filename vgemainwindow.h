@@ -2,21 +2,32 @@
 #define QTVERMAINWINDOW_H
 
 #include <QMainWindow>
+#include "vgedocument.h"
 
-namespace Ui {
-class qtVGEMainWindow;
-}
+#include <QList>
+#include <QtWidgets>
 
-class qtVGEMainWindow : public QMainWindow
+class VGEMainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit qtVGEMainWindow(QWidget *parent = 0);
-    ~qtVGEMainWindow();
+    explicit VGEMainWindow(QWidget *parent = nullptr);
+    ~VGEMainWindow();
+
+protected:
+    void closeEvent(QCloseEvent *event);
+
+private slots:
+    void open();
+    void save();
+
 
 private:
-    Ui::qtVGEMainWindow *ui;
+    QToolBar *_leftToolBar;
+    QLabel *_coordX;
+    QLabel *_coordY;
+    VGEDocument *_document;
 };
 
 #endif // QTVGEMAINWINDOW_H

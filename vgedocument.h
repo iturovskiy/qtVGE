@@ -3,15 +3,16 @@
 
 #include <QWidget>
 
-class VGEdocument : public QWidget
+class VGEDocument : public QWidget
 {
     Q_OBJECT
 public:
-    explicit VGEdocument(QWidget *parent = nullptr);
+    explicit VGEDocument(QWidget *parent = nullptr);
 
 signals:
 
 public slots:
+
 };
 
 #endif // VGEDOCUMENT_H

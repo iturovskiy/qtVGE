@@ -1,6 +1,6 @@
 #include "vgedocument.h"
 
-VGEdocument::VGEdocument(QWidget *parent) : QWidget(parent)
+VGEDocument::VGEDocument(QWidget *parent) : QWidget(parent)
 {
 
 }
