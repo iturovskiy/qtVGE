@@ -8,6 +8,7 @@
 
 #include "configs.h"
 
+void bresenhamLine(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line);
 
 class VGEShape;
 class VGERShape;
@@ -18,9 +19,7 @@ class VGERShape : public QObject {
 
 public:
     VGERShape() : _points(nullptr), _keyPoints(nullptr) {}
-
     VGERShape(QVector<QPoint> *points, QColor color, QVector<QPoint> *keyPoints = nullptr);
-
     void operator() (QImage *image) const;
 
 private:
@@ -46,15 +45,11 @@ public:
     { delete _shapePoints; if (_raster) delete _raster; }
 
     virtual void move(QPointF displacement) = 0;
-
+    virtual void scale(qreal coefficient) = 0;
     virtual void handleMousePressEvent(QMouseEvent *event) = 0;
-
     virtual void handleMouseMoveEvent(QMouseEvent *event) = 0;
-
     virtual void handleMouseReleaseEvent(QMouseEvent *event) = 0;
-
     virtual VGERShape& getRaster() = 0;
-
     virtual QString str() const = 0;
 
     virtual bool isReady()
@@ -74,6 +69,8 @@ public:
     void setColor(const QColor &newColor)
     { _color = newColor; draw(); }
 
+    int test(QPoint point);
+
 
 protected:
     virtual void draw() = 0;
@@ -88,6 +85,7 @@ protected:
 
 
 signals:
+
 public slots:
 
 };
@@ -101,14 +99,28 @@ void VGEShape::select(bool var) {
 }
 
 
-VGERShape::VGERShape(QVector<QPoint> *points, QColor color, QVector<QPoint> *keyPoints) :
-_points(points), _pen(color), _keyPoints(keyPoints), _keyPen(QColor(0xFF, 0xFF, 0, 0xFF)) {
-    _pen.setWidth(vge::DEFAULT_WIDTH);
-    _keyPen.setWidth(vge::DEFAULT_WIDTH * 5);
+int VGEShape::test(QPoint point) {
+    int min = 2 * vge::SEARCH_W * vge::SEARCH_W;
+    for (QPoint shapePoint : *_shapePoints){
+        int distX = abs(shapePoint.x() - point.x());
+        int distY = abs(shapePoint.y() - point.y());
+        if (distX < vge::SEARCH_W && distY < vge::SEARCH_W) {
+            int square =  distX * distX + distY * distY;
+            min = min < square ? min : square;
+        }
+    }
+    return min;
 }
 
 
-void VGERShape::operator()(QImage * image) const {
+VGERShape::VGERShape(QVector<QPoint> *points, QColor color, QVector<QPoint> *keyPoints) :
+_points(points), _pen(color), _keyPoints(keyPoints), _keyPen(QColor(0xFF, 0xFF, 0, 0xFF)) {
+    _pen.setWidth(vge::DEFAULT_W);
+    _keyPen.setWidth(vge::DEFAULT_W * 5);
+}
+
+
+void VGERShape::operator()(QImage *image) const {
     if (!_points) {
         return;
     }
@@ -122,5 +134,33 @@ void VGERShape::operator()(QImage * image) const {
     painter.end();
 }
 
+
+void bresenhamLine(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) {
+
+    int x2 = static_cast<int>(lp.x());
+    int x1 = static_cast<int>(fp.x());
+    int y2 = static_cast<int>(lp.y());
+    int y1 = static_cast<int>(fp.y());
+    const int deltaX = abs(x2 - x1);
+    const int deltaY = abs(y2 - y1);
+    const int signX = x1 < x2 ? 1 : -1;
+    const int signY = y1 < y2 ? 1 : -1;
+    int error = deltaX - deltaY;
+
+    line.append(QPoint(x2, y2));
+
+    while(x1 != x2 || y1 != y2) {
+        line.append(QPoint(x1, y1));
+        const int error2 = error * 2;
+        if (error2 > -deltaY) {
+            error -= deltaY;
+            x1 += signX;
+        }
+        if (error2 < deltaX) {
+            error += deltaX;
+            y1 += signY;
+        }
+    }
+}
 
 #endif // VGESHAPE_H

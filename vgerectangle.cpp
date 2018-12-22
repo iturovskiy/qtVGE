@@ -1,15 +1,15 @@
-#include "vgeline.h"
+#include "vgerectangle.h"
 
 #include <QtMath>
 
 
-VGELine::VGELine(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint) :
+VGERectangle::VGERectangle(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint) :
 VGEShape(parent, color), _firstPoint(firstPoint), _lastPoint(lastPoint) {
     draw();
 }
 
 
-void VGELine::move(QPointF displacement) {
+void VGERectangle::move(QPointF displacement) {
     _firstPoint.rx() += displacement.x();
     _firstPoint.ry() += displacement.y();
     _lastPoint.rx() += displacement.x();
@@ -18,7 +18,7 @@ void VGELine::move(QPointF displacement) {
 }
 
 
-void VGELine::scale(qreal coefficeint) {
+void VGERectangle::scale(qreal coefficeint) {
     const qreal distX = _lastPoint.x() - _firstPoint.x() ;
     const qreal distY = _lastPoint.y() - _firstPoint.x() ;
     const qreal length = qSqrt(distX * distX + distY * distY);
@@ -71,7 +71,7 @@ void VGELine::scale(qreal coefficeint) {
 }
 
 
-void VGELine::handleMousePressEvent(QMouseEvent * event) {
+void VGERectangle::handleMousePressEvent(QMouseEvent * event) {
     _firstPoint = event->pos();
     _lastPoint = event->pos();
     _isMousePressed = true;
@@ -79,20 +79,20 @@ void VGELine::handleMousePressEvent(QMouseEvent * event) {
 }
 
 
-void VGELine::handleMouseMoveEvent(QMouseEvent * event) {
+void VGERectangle::handleMouseMoveEvent(QMouseEvent * event) {
     _lastPoint = event->pos();
     draw();
 }
 
 
-void VGELine::handleMouseReleaseEvent(QMouseEvent * event) {
+void VGERectangle::handleMouseReleaseEvent(QMouseEvent * event) {
     _lastPoint = event->pos();
     _isMousePressed = false;
     draw();
 }
 
 
-void VGELine::draw() {
+void VGERectangle::draw() {
     QColor drawColor;
     if (_isSelected){
         drawColor = QColor(0xFF - _color.red(), 0xFF - _color.green(), 0xFF - _color.blue(), 0xFF);
@@ -104,7 +104,17 @@ void VGELine::draw() {
     }
 
     _shapePoints->clear();
-    bresenhamLine(_firstPoint, _lastPoint, *_shapePoints);
+    const qreal distY = _lastPoint.y() - _firstPoint.y();
+    int step;
+    (distY < 0) ? step = -1 : step = 1;
+    int i = 0;
+    while (abs(_firstPoint.y() + i * step) < abs(_lastPoint.y())) {
+        QPointF p1(_firstPoint.x(), _firstPoint.y() + i * step);
+        QPointF p2(_lastPoint.x(), _firstPoint.y() + i * step);
+        bresenhamLine(p1, p2, *_shapePoints);
+        i++;
+    }
+
 
     if (_raster) {
         delete _raster;
@@ -113,15 +123,15 @@ void VGELine::draw() {
 }
 
 
-VGERShape& VGELine::getRaster() {
+VGERShape& VGERectangle::getRaster() {
     if (!_raster) {
         draw();
     }
     return *_raster;
 }
 
-// redo
-QString VGELine::str() const {
+//! redo
+QString VGERectangle::str() const {
     std::string str;
     return QString(str.c_str());
 }

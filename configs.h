@@ -14,7 +14,8 @@ namespace vge {
     static const int WINDOW_H = 400;
     static const int WINDOW_W = 600;
 
-    static const int DEFAULT_WIDTH = 2;
+    static const int DEFAULT_W = 2;
+    static const int SEARCH_W = 6;
 
     // default background color
     static const QColor BG_DEFAULT_COLOR(0xFF, 0xFF, 0xFF, 0xFF); // white
@@ -27,17 +28,21 @@ namespace vge {
 
     // modes
     enum editorMode{
+        SelectShape,
+
         DrawLine,
         DrawEllipse,
         DrawRectangle,
         DrawHypocycloid,
-        SelectShape,
+
         MakeGroup,
-        DeleteShape,
-        EraseShape,
-        ChangeParams,
+        DeleteShape,        // from group
+        EraseShape,         // from document
+
         Move,
         Scaling,
+        SetUp,
+
         Clipping,
         MakeTangent
     };

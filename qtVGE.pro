@@ -16,14 +16,20 @@ SOURCES += \
         main.cpp \
     vgeline.cpp \
     vgemainwindow.cpp \
-    vgedocument.cpp
+    vgedocument.cpp \
+    vgeactions.cpp \
+    vgerectangle.cpp \
+    vgeellipse.cpp
 
 HEADERS += \
     configs.h \
     vgeline.h \
     vgeshape.hpp \
     vgemainwindow.h \
-    vgedocument.h
+    vgedocument.h \
+    vgeactions.h \
+    vgerectangle.h \
+    vgeellipse.h
 
 FORMS += \
     vgemainwindow.ui

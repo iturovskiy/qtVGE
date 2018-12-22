@@ -1,21 +1,20 @@
-#ifndef VGELINE_H
-#define VGELINE_H
+#ifndef VGERECTANGLE_H
+#define VGERECTANGLE_H
 
 #include "vgeshape.hpp"
 
 
-class VGELine;
+class VGERectangle;
 
-
-class VGELine : public VGEShape {
+class VGERectangle : public VGEShape {
     Q_OBJECT
 
 public:
-    explicit VGELine(QObject *parent = nullptr,
+    explicit VGERectangle(QObject *parent = nullptr,
                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
                      VGEShape(parent, color) {}
 
-    explicit VGELine(QObject *parent, QColor color,
+    explicit VGERectangle(QObject *parent, QColor color,
                      QPointF firstPoint, QPointF lastPoint);
 
     void move(QPointF displacement) override;
@@ -50,4 +49,4 @@ private:
 };
 
 
-#endif // VGELINE_H
+#endif // VGERECTANGLE_H
