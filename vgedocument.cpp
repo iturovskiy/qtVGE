@@ -2,8 +2,7 @@
 
 
 VGEDocument::VGEDocument(QWidget *parent) :
-QWidget(parent),
-_image(new QImage(vge::IMAGE_W, vge::IMAGE_H, QImage::Format_ARGB32_Premultiplied))
+QWidget(parent), _image(new QImage(vge::IMAGE_W, vge::IMAGE_H, QImage::Format_ARGB32_Premultiplied))
 {
     qDebug() << __FUNCTION__;
     _image->fill(vge::BG_DEFAULT_COLOR);
@@ -49,211 +48,171 @@ void VGEDocument::updateImage() {
 
 void VGEDocument::searchPixel(QPoint point) {
     int minDist = 2 * vge::SEARCH_W * vge::SEARCH_W;
-        VGEShape * selectedShape = nullptr;
-        for (auto shape : _shapeList){
-            int dist = shape->test(point);
-            if (dist < minDist){
-                selectedShape = shape;
-                minDist = dist;
-            }
+    VGEShape * selectedShape = nullptr;
+    for (auto shape : _shapeList){
+        int dist = shape->test(point);
+        if (dist < minDist){
+            selectedShape = shape;
+            minDist = dist;
         }
-        if (selectedShape && !selectedShape->isSelected()){
-            selectedShape->select(true);
-            _selectedShapeList.append(selectedShape);
-            emit shapeSelected(true);
-        }
-        else if (selectedShape) {
-            selectedShape->select(false);
-            _selectedShapeList.removeAll(selectedShape);
-            if(_selectedShapeList.empty())
-                emit shapeSelected(false);
-        }
-        update();
+    }
+    if (selectedShape && !selectedShape->isSelected()){
+        selectedShape->select(true);
+        _selectedShapeList.append(selectedShape);
+        emit shapeSelected(true);
+    }
+    else if (selectedShape) {
+        selectedShape->select(false);
+        _selectedShapeList.removeAll(selectedShape);
+        if(_selectedShapeList.empty())
+            emit shapeSelected(false);
+    }
+    update();
 }
 
-
-void VGEDocument::mousePressEvent(QMouseEvent *me) {
-    if (me->button() == Qt::LeftButton){
-        if (_mode == vge::DrawLine || _mode == vge::Move){
-            emit sendMsgToUI("Нарисуйте линию", false);
-
-            _tmpShape = new VGELine(this);
-            _tmpShape->handleMousePressEvent(me);
-            updateImage();
-
-        }
-        else if (_mode == vge::SelectShape) {
-            searchPixel(me->pos());
+/// todo tangent
+void VGEDocument::mousePressEvent(QMouseEvent *event) {
+    qDebug() << "Document - mouse PRESS; mod: " << _mode;
+    if (event->button() == Qt::LeftButton){
+        if (_mode == vge::SelectShape) {
+            searchPixel(event->pos());
             updateImage();
             if (!_selectedShapeList.empty()){
                 emit sendMsgToUI("Выберите ещё фигуры", false);
             }
         }
-        /* else if (_mode == QVP::drawEllipse){
-            emit sendMsgToUI("Нарисуйте эллипс", false);
-
-            m_tmpShape = new QVPEllipse(this);
-            m_tmpShape->handleMousePressEvent(me);
+        else if (_mode == vge::DrawLine || _mode == vge::Move){
+            emit sendMsgToUI("Нарисуйте линию", false);
+            _tmpShape = new VGELine(this);
+            _tmpShape->handleMousePressEvent(event);
             updateImage();
-
-        } elif (m_currentMode == QVP::drawEllipticCurve){
-            emit sendMsgToUI("Нарисуйте эллипс и линиями ограничьте дугу", false);
-
-            if (m_tmpShape == nullptr){
-                m_tmpShape = new QVPEllipticArc(this);
+        }
+        else if (_mode == vge::DrawRectangle){
+            emit sendMsgToUI("Нарисуйте прямоугольник", false);
+            _tmpShape = new VGERectangle(this);
+            _tmpShape->handleMousePressEvent(event);
+            updateImage();
+        }
+        else if (_mode == vge::Clipping){
+            emit sendMsgToUI("Нарисуйте прямоугольную область", false);
+            VGERectangle  * rect = new VGERectangle(this);
+            rect->change();
+            _tmpShape = qobject_cast<VGEShape *>(rect);
+            _tmpShape->handleMousePressEvent(event);
+            updateImage();
+        }
+        else if (_mode == vge::DrawCircle) {
+            emit sendMsgToUI("Проведите радиус", false);
+            _tmpShape = new VGECircle(this);
+            _tmpShape->handleMousePressEvent(event);
+            updateImage();
+        }
+        else if (_mode == vge::DrawHypocycloid) {
+            emit sendMsgToUI("Проведите радиус", false);
+            if (_hypoCount == 0) {
+                _tmpShape = new VGEHypocycloid(this);
             }
-            m_tmpShape->handleMousePressEvent(me);
+            _tmpShape->handleMousePressEvent(event);
             updateImage();
-
-        } elif (m_currentMode == QVP::makeOrtho){
-            if (m_selectedShapesList.isEmpty()){
-                previousWasFail = true;
+        }
+        else if (_mode == vge::MakeTangent) {
+            if (_selectedShapeList.isEmpty()){
+                _previousWasFail = true;
                 emit sendMsgToUI("Ничего не выбрано!", true);
                 emit switchToSelection();
             }
-            QVPLine * line = qobject_cast<QVPLine *>(m_selectedShapesList.last());
-            if (line){
-                emit sendMsgToUI("Нарисуйте линию ожидаемой длины", false);
-                m_tmpShape = new QVPLine(this);
-                m_tmpShape->handleMousePressEvent(me);
-                updateImage();
-            } else {
-                previousWasFail = true;
-                emit sendMsgToUI("Выбрана не линия", true);
+            else if (_selectedShapeList.size() != 2) {
+                _previousWasFail = true;
+                emit sendMsgToUI("Выбрано недостаточно окружностей", true);
                 emit switchToSelection();
-
             }
-        } elif (m_currentMode == QVP::clipRectangle){
-            emit sendMsgToUI("Нарисуйте прямоугольник", false);
 
-            m_tmpShape = new QVPLine(this, true);
-            m_tmpShape->handleMousePressEvent(me);
-            updateImage();
-        }*/
+            VGECircle * circl1 = qobject_cast<VGECircle *>(_selectedShapeList.first());
+            VGECircle * circl2 = qobject_cast<VGECircle *>(_selectedShapeList.last());
+            if (circl1 && circl2) {
+                _tmpShape = new VGELine(this);
+                updateImage();
+            }
+            else {
+                _previousWasFail = true;
+                emit sendMsgToUI("Выбраны не окружности", true);
+                emit switchToSelection();
+            }
+        }
     }
     qDebug() << "Shapes: " << _shapeList.size();
 }
 
 
-void VGEDocument::mouseMoveEvent(QMouseEvent *me) {
-    emit updateCoord(me->pos());
-
-        if (_mode == vge::DrawLine || _mode == vge::Move){
-            if (me->buttons() & Qt::LeftButton){
-                _tmpShape->handleMouseMoveEvent(me);
-            }
-            updateImage();
+void VGEDocument::mouseMoveEvent(QMouseEvent *event) {
+    emit updateCoord(event->pos());
+    // qDebug() << "Document - mouse MOVE; mod: " << _mode;
+    if (_mode == vge::Move || _mode == vge::DrawLine || _mode == vge::DrawRectangle ||
+        _mode == vge::DrawCircle || _mode == vge::DrawHypocycloid || _mode == vge::Clipping)
+    {
+        if (event->buttons() & Qt::LeftButton){
+            _tmpShape->handleMouseMoveEvent(event);
         }
-        /*
-         elif (m_currentMode == QVP::drawEllipticCurve && m_tmpShape != nullptr){
-            qDebug() << "mme=" << me;
-            m_tmpShape->handleMouseMoveEvent(me);
-            updateImage();
-        } */
+        updateImage();
+    }
 }
 
-
-void VGEDocument::mouseReleaseEvent(QMouseEvent *me) {
-    if (_mode == vge::DrawLine  || _mode == vge::DrawEllipse || _mode == vge::DrawRectangle) {
-            if (me->button() == Qt::LeftButton){
-                _tmpShape->handleMouseReleaseEvent(me);
-                _shapeList.append(_tmpShape);
-                _tmpShape = nullptr;
-            }
-            updateImage();
-        } else if (_mode == vge::Move){
-            VGELine* linePtr = qobject_cast<VGELine *>(_tmpShape);
-            QPointF a = linePtr->getFP();
-            QPointF b = linePtr->getSP();
-            QPointF vec(b.x() - a.x(), b.y() - a.y());
-            for (auto shape : _selectedShapeList){
-                shape->move(vec);
-            }
-            delete _tmpShape;
+/// todo tangent
+void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
+    qDebug() << "Document - mouse RELEASE; mod: " << _mode;
+    if (_mode == vge::DrawLine   || _mode == vge::DrawRectangle || _mode == vge::DrawCircle) {
+        if (event->button() == Qt::LeftButton){
+            _tmpShape->handleMouseReleaseEvent(event);
+            _shapeList.append(_tmpShape);
             _tmpShape = nullptr;
-            updateImage();
         }
-        /* elif (m_currentMode == QVP::drawEllipticCurve){
-            if (me->button() == Qt::LeftButton){
-                m_tmpShape->handleMouseReleaseEvent(me);
-                if (m_tmpShape->isReady()){
-                    m_shapesList.append(m_tmpShape);
-                    m_tmpShape = nullptr;
+        updateImage();
+    }
+    else if(_mode == vge::DrawHypocycloid) {
+        if (_hypoCount == 0) {
+             _tmpShape->handleMouseReleaseEvent(event);
+             _hypoCount++;
+        }
+        else {
+            _tmpShape->handleMouseReleaseEvent(event);
+            _shapeList.append(_tmpShape);
+            _tmpShape = nullptr;
+            _hypoCount = 0;
+        }
+        updateImage();
+    }
+    else if (_mode == vge::Move) {
+        VGELine* linePtr = qobject_cast<VGELine *>(_tmpShape);
+        QPointF a = linePtr->getFP();
+        QPointF b = linePtr->getSP();
+        QPointF vec(b.x() - a.x(), b.y() - a.y());
+        for (auto shape : _selectedShapeList){
+            shape->move(vec);
+        }
+        delete _tmpShape;
+        _tmpShape = nullptr;
+        updateImage();
+    }
+    else if (_mode == vge::Clipping) {
+        // todo
+        VGERectangle *rect = qobject_cast<VGERectangle *>(_tmpShape);
+        QList<VGEShape *> stayList = rect->clip();
+        QList<VGEShape *> delList = {};
+        for (auto &item :  _shapeList) {
+            for (auto it : stayList) {
+                if (item->str().compare(it->str()) != 0) {
+                    delList.append(item);
                 }
             }
-            updateImage();
-        } elif (m_currentMode == QVP::makeOrtho){
-            if (m_selectedShapesList.isEmpty()){
-                previousWasFail = true;
-                emit sendMsgToUI("Ничего не выбрано!", true);
-                emit switchToSelection();
-            }
-            QVPLine* linePtr = qobject_cast<QVPLine *>(m_tmpShape);
-            QPointF a = linePtr->getFirst();
-            QPointF b = linePtr->getLast();
-            double targetLenght = sqrt((b.x() - a.x())*(b.x() - a.x()) +
-                                 (b.y() - a.y())*(b.y() - a.y()));
-            QVPLine* selectedLinePtr = qobject_cast<QVPLine *>(m_selectedShapesList.last());
-            QPointF sa = selectedLinePtr->getFirst();
-            QPointF sb = selectedLinePtr->getLast();
-            float x = sb.x() - sa.x();
-            float y = sb.y() - sa.y();
-            double lenght = sqrt(x*x + y*y);
-            float scale = targetLenght/lenght;
-            b.setX(a.x() + y * scale);
-            b.setY(a.y() - x * scale);
-            m_shapesList.append(new QVPLine(this, QVP::penColor, a, b));
-            delete m_tmpShape;
-            m_tmpShape = nullptr;
-            updateImage();
-            emit switchToSelection();
-        } elif (m_currentMode == QVP::crossLine){
-            QVPLine* linePtr = qobject_cast<QVPLine *>(m_tmpShape);
-            QPointF a = linePtr->getFirst();
-            QPointF b = linePtr->getLast();
-            QStack<QVPShape*> removeStack;
-            QList<QVPShape*> addList;
-            for (auto shape : m_selectedShapesList){
-                auto tmpList = shape->cutLine(a, b);
-                if (!tmpList.isEmpty()){
-                    removeStack.append(shape);
-                    addList.append(tmpList);
-                }
-            }
-            unSelect();
+        }
+        delList.clear();
+        emit switchToSelection();
+        updateImage();
+    }
+    else if (_mode == vge::MakeTangent) {
+        // todo
 
-            while(!removeStack.isEmpty()){
-                auto shape = removeStack.pop();
-                delete shape;
-                m_shapesList.removeAll(shape);
-            }
-            m_shapesList.append(addList);
-            emit switchToSelection();
-            updateImage();
-        } elif (m_currentMode == QVP::clipRectangle){
-            QVPLine* linePtr = qobject_cast<QVPLine *>(m_tmpShape);
-            QPointF a = linePtr->getFirst();
-            QPointF b = linePtr->getLast();
-            QStack<QVPShape*> removeStack;
-            QList<QVPShape*> addList;
-            for (auto shape : m_selectedShapesList){
-                auto tmpList = shape->cutRect(a, b);
-                if (!tmpList.isEmpty()){
-                    removeStack.append(shape);
-                    addList.append(tmpList);
-                }
-            }
-            unSelect();
-
-            while(!removeStack.isEmpty()){
-                auto shape = removeStack.pop();
-                delete shape;
-                m_shapesList.removeAll(shape);
-            }
-            m_shapesList.append(addList);
-            emit switchToSelection();
-            updateImage();
-        } */
+    }
 }
 
 
@@ -266,7 +225,6 @@ void VGEDocument::paintEvent(QPaintEvent *event)
 }
 
 
-// todo
 void VGEDocument::setEditorMode(vge::editorMode mode) {
     qDebug() << __FUNCTION__;
 
@@ -286,76 +244,98 @@ void VGEDocument::setEditorMode(vge::editorMode mode) {
             _previousWasFail = true;
             emit switchToSelection();
         }
-        else if (!_actions) {
+        else if (!_setupAction) {
             VGEShape *shape = _selectedShapeList.last();
             // line
             if (qobject_cast<VGELine *>(shape)) {
-                VGELine* line = qobject_cast<VGELine *>(shape);
-                /*
-                m_shapeActions = new QVPShapeActions(nullptr, QVP::line, shape->getColor(),
-                                                     shape->getWidth(), line->getFirst(), line->getLast());
-
-                connect(m_shapeActions, &QVPShapeActions::finished, this, &QVPDocument::acceptParamsClose);
-                connect(m_shapeActions, &QVPShapeActions::updateShape, this, &QVPDocument::receiveParams);
-                */
+                VGELine *line = qobject_cast<VGELine *>(shape);
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Line, shape->getColor(), line->getFP(), line->getSP());
+                connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
+                connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
+                _setupAction->show();
             }
-            /*
+            // rectangle
             else if (qobject_cast<VGERectangle *>(shape)) {
-
+                VGERectangle *rect = qobject_cast<VGERectangle *>(shape);
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Rectangle, shape->getColor(), rect->getFP(), rect->getSP());
+                connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
+                connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
+                _setupAction->show();
             }
-            else if (qobject_cast<VGEEllipse *>(shape)) {
-
+            // circle
+            else if (qobject_cast<VGECircle *>(shape)) {
+                VGECircle *circle = qobject_cast<VGECircle *>(shape);
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Circle, shape->getColor(),
+                                        circle->getCenter(), circle->getRadius());
+                connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
+                connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
+                _setupAction->show();
             }
+            // hypocycloid
             else if (qobject_cast<VGEHypocycloid *>(shape)) {
-
+                VGEHypocycloid *hypo = qobject_cast<VGEHypocycloid *>(shape);
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Hypocycloid, shape->getColor(),
+                                        hypo->getCenter(), hypo->getRadiusOut(), hypo->getRadiusInn());
+                connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
+                connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
+                _setupAction->show();
             }
-            */
         }
     }
-    else if (_actions) {
-        _actions->close();
-        _actions->deleteLater();
-        _actions = nullptr;
+    else if (_setupAction) {
+        _setupAction->close();
+        _setupAction->deleteLater();
+        _setupAction = nullptr;
     }
 }
 
 
 void VGEDocument::acceptParamsClose() {
-    if (_actions) {
-        _actions->close();
-        _actions->deleteLater();
-        _actions = nullptr;
+    if (_setupAction) {
+        _setupAction->close();
+        _setupAction->deleteLater();
+        _setupAction = nullptr;
     }
     emit switchToSelection();
 }
 
 
-void VGEDocument::receiveParams(QColor color, QPointF first, QPointF last, float rOuter, float rInner) {
-    VGEShape* shape = _selectedShapeList.last();
+void VGEDocument::receiveParams(QColor color, qreal coef, QPointF first, QPointF last, qreal rOuter, qreal rInner) {
+    VGEShape *shape = _selectedShapeList.last();
     shape->setColor(color);
     if (qobject_cast<VGELine *>(shape)){
-        VGELine* line = qobject_cast<VGELine *>(shape);
+        auto *line = qobject_cast<VGELine *>(shape);
         line->setFP(first);
         line->setLP(last);
+        if (coef != 100.00) {
+            line->scale(coef / 100);
+        }
     }
-    /*
-    else if (qobject_cast<QVPEllipse *>(shape)){
-        QVPEllipse* ellipse = qobject_cast<QVPEllipse *>(shape);
-        ellipse->setCenter(first);
-        ellipse->setA(a);
-        ellipse->setB(b);
-
+    else if (qobject_cast<VGERectangle *>(shape)){
+        auto *rect = qobject_cast<VGERectangle *>(shape);
+        rect->setFP(first);
+        rect->setLP(last);
+        if (coef != 100.00) {
+            rect->scale(coef / 100);
+        }
     }
-    else if (qobject_cast<QVPEllipticArc *>(shape)){
-        QVPEllipticArc* arc = qobject_cast<QVPEllipticArc *>(shape);
-        arc->setCenter(first);
-        arc->setA(a);
-        arc->setB(b);
-        arc->setAng1(ang1);
-        arc->setAng2(ang2);
-
+    else if (qobject_cast<VGECircle *>(shape)){
+        auto *circle = qobject_cast<VGECircle *>(shape);
+        circle->setCenter(first);
+        circle->setRadius(rOuter);
+        if (coef != 100.00) {
+            circle->scale(coef / 100);
+        }
     }
-    */
+    else if (qobject_cast<VGEHypocycloid *>(shape)){
+        auto *hypo = qobject_cast<VGEHypocycloid *>(shape);
+        hypo->setCenter(first);
+        hypo->setRadiusOut(rOuter);
+        hypo->setRadiusInn(rInner);
+        if (coef != 100.00) {
+            hypo->scale(coef / 100);
+        }
+    }
     acceptParamsClose();
     updateImage();
 }

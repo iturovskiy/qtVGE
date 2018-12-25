@@ -1,7 +1,7 @@
 #ifndef VGERECTANGLE_H
 #define VGERECTANGLE_H
 
-#include "vgeshape.hpp"
+#include "vgeshape.h"
 
 
 class VGERectangle;
@@ -11,11 +11,11 @@ class VGERectangle : public VGEShape {
 
 public:
     explicit VGERectangle(QObject *parent = nullptr,
-                     QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                     VGEShape(parent, color) {}
+                          QColor color = vge::SHAPE_DEFAULT_COLOR) :
+                          VGEShape(parent, color) {}
 
     explicit VGERectangle(QObject *parent, QColor color,
-                     QPointF firstPoint, QPointF lastPoint);
+                          QPointF firstPoint, QPointF lastPoint);
 
     void move(QPointF displacement) override;
     void scale(qreal coefficeint) override;
@@ -25,17 +25,25 @@ public:
     VGERShape& getRaster() override;
     QString str() const override;
 
+    QList<VGEShape *> clip(); /// todo
+
     inline QPointF getFP() const
     { return _firstPoint; }
 
     inline QPointF getSP() const
     { return _lastPoint; }
 
+    inline bool filled() const
+    { return _filled; }
+
     void setFP(const QPointF &point)
     { _firstPoint = point; draw(); }
 
     void setLP(const QPointF &point)
     { _lastPoint = point; draw(); }
+
+    void change()
+    { _filled = !_filled; }
 
 
 protected:
@@ -45,6 +53,7 @@ protected:
 private:
     QPointF _firstPoint;
     QPointF _lastPoint;
+    bool _filled = true;
 
 };
 

@@ -17,19 +17,23 @@ SOURCES += \
     vgeline.cpp \
     vgemainwindow.cpp \
     vgedocument.cpp \
-    vgeactions.cpp \
     vgerectangle.cpp \
-    vgeellipse.cpp
+    vgehypocycloid.cpp \
+    vgecircle.cpp \
+    vgegroup.cpp \
+    vgeshapesetup.cpp \
+    vgeshape.cpp
 
 HEADERS += \
     configs.h \
     vgeline.h \
-    vgeshape.hpp \
     vgemainwindow.h \
     vgedocument.h \
-    vgeactions.h \
     vgerectangle.h \
-    vgeellipse.h
+    vgehypocycloid.h \
+    vgecircle.h \
+    vgegroup.h \
+    vgeshapesetup.h \
+    vgeshape.h
 
-FORMS += \
-    vgemainwindow.ui
+FORMS +=

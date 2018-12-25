@@ -1,11 +1,15 @@
 #ifndef VGEDOCUMENT_H
 #define VGEDOCUMENT_H
 
+
 #include <QWidget>
 
-#include "vgeshape.hpp"
+#include "vgeshape.h"
 #include "vgeline.h"
-#include "vgeactions.h"
+#include "vgerectangle.h"
+#include "vgecircle.h"
+#include "vgehypocycloid.h"
+#include "vgeshapesetup.h"
 
 
 class VGEDocument : public QWidget {
@@ -17,9 +21,9 @@ public:
 
 
 protected:
-    void mousePressEvent(QMouseEvent* me) override;
-    void mouseMoveEvent(QMouseEvent* me) override;
-    void mouseReleaseEvent(QMouseEvent* me) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
 
 
@@ -30,8 +34,10 @@ private:
 
 
 public slots:
-    void setEditorMode(vge::editorMode emode);
-    void receiveParams(QColor color, QPointF first, QPointF last, float rOuter, float rInner);
+    void setEditorMode(vge::editorMode mode);
+    void receiveParams(QColor color, qreal coef,
+                       QPointF first, QPointF last,
+                       qreal rOuter, qreal rInner);
     void acceptParamsClose();
 
 
@@ -48,10 +54,12 @@ private:
     QList<VGEShape *> _shapeList;
     QList<VGEShape *> _selectedShapeList;
     VGEShape *_tmpShape = nullptr;
-    VGEActions *_actions = nullptr;
-    vge::editorMode _mode = vge::DrawLine;
+    VGEShapeSetUp *_setupAction = nullptr;
+    vge::editorMode _mode = vge::SelectShape;
     bool _previousWasFail = false;
+    quint8 _hypoCount = 0;
 
 };
+
 
 #endif // VGEDOCUMENT_H

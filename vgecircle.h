@@ -2,21 +2,21 @@
 #define VGEELLIPSE_H
 
 
-#include "vgeshape.hpp"
+#include "vgeshape.h"
 
 
-class VGEEllipse;
+class VGECircle;
 
 
-class VGEEllipse : public VGEShape {
+class VGECircle : public VGEShape {
     Q_OBJECT
 
 public:
-    explicit VGEEllipse(QObject *parent = nullptr,
+    explicit VGECircle(QObject *parent = nullptr,
                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
                      VGEShape(parent, color) {}
 
-    explicit VGEEllipse(QObject *parent, QColor color,
+    explicit VGECircle(QObject *parent, QColor color,
                      QPointF center, qreal radius);
 
     void move(QPointF displacement) override;
@@ -25,7 +25,7 @@ public:
     void handleMouseMoveEvent(QMouseEvent *event) override;
     void handleMouseReleaseEvent(QMouseEvent *event) override;
     VGERShape& getRaster() override;
-    QString str() const override;
+    QString str() const override; //todo
 
     inline QPointF getCenter() const
     { return _center; }
@@ -39,19 +39,13 @@ public:
     void setRadius(const qreal &radius)
     { _radius = radius; draw(); }
 
-
-protected:
     void draw() override;
 
 
 private:
     QPointF _center;
     qreal _radius;
-    QPointF _firstPoint, _lastPoint;
 };
-
-
-#endif // VGELINE_H
 
 
 #endif // VGEELLIPSE_H

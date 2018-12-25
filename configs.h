@@ -29,28 +29,24 @@ namespace vge {
     // modes
     enum editorMode{
         SelectShape,
-
         DrawLine,
-        DrawEllipse,
         DrawRectangle,
+        DrawCircle,
         DrawHypocycloid,
-
         MakeGroup,
         DeleteShape,        // from group
-        EraseShape,         // from document
-
         Move,
         Scaling,
-        SetUp,
-
         Clipping,
-        MakeTangent
+        MakeTangent,
+        SetUp,
+        EraseShape         // from document
     };
 
     // shapes
     enum shapeType{
         Line,
-        Ellipse,
+        Circle,
         Rectangle,
         Hypocycloid
     };

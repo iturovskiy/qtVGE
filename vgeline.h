@@ -1,8 +1,8 @@
 #ifndef VGELINE_H
 #define VGELINE_H
 
-#include "vgeshape.hpp"
-
+#include "vgeshape.h"
+#include "vgecircle.h"
 
 class VGELine;
 
@@ -26,6 +26,8 @@ public:
     VGERShape& getRaster() override;
     QString str() const override;
 
+    void makeTangent(QPointF pos, VGECircle *first, VGECircle *second); /// ?
+
     inline QPointF getFP() const
     { return _firstPoint; }
 
@@ -38,8 +40,6 @@ public:
     void setLP(const QPointF &point)
     { _lastPoint = point; draw(); }
 
-
-protected:
     void draw() override;
 
 

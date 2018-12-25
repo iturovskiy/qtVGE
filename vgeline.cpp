@@ -34,7 +34,7 @@ void VGELine::scale(qreal coefficeint) {
             _firstPoint.rx() += deltaX;
             _firstPoint.ry() += deltaY;
         }
-        else if ((int)distX == 0) {
+        else if (static_cast<int>(distX) == 0) {
             if (distY > 0) {
                 _firstPoint.ry() += deltaY;
             }
@@ -54,7 +54,7 @@ void VGELine::scale(qreal coefficeint) {
             _firstPoint.rx() = _lastPoint.x() + deltaX;
             _firstPoint.ry() = _lastPoint.y() + deltaY;
         }
-        else if ((int)distX == 0) {
+        else if (static_cast<int>(distX) == 0) {
             if (distY > 0) {
                 _firstPoint.ry() += deltaY;
             }
@@ -120,8 +120,8 @@ VGERShape& VGELine::getRaster() {
     return *_raster;
 }
 
-// redo
+
 QString VGELine::str() const {
-    std::string str;
+    std::string str = "LINE" + std::to_string(_number);
     return QString(str.c_str());
 }
