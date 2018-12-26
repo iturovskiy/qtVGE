@@ -19,54 +19,12 @@ void VGERectangle::move(QPointF displacement) {
 
 
 void VGERectangle::scale(qreal coefficeint) {
-    const qreal distX = _lastPoint.x() - _firstPoint.x() ;
-    const qreal distY = _lastPoint.y() - _firstPoint.x() ;
-    const qreal length = qSqrt(distX * distX + distY * distY);
-    const qreal newlength = coefficeint * length;
-    const qreal deltaLength = newlength - length;
-    const qreal tan = distX / distY;
-    const qreal angle = qAtan(tan);
-    qreal deltaX, deltaY;
-    if (deltaLength > 0) {
-        deltaX = qSin(angle) * deltaLength;
-        deltaY = qCos(angle) * deltaLength;
-        if (distX < 0) {
-            _firstPoint.rx() += deltaX;
-            _firstPoint.ry() += deltaY;
-        }
-        else if (static_cast<int>(distX) == 0) {
-            if (distY > 0) {
-                _firstPoint.ry() += deltaY;
-            }
-            else {
-                _lastPoint.ry() += deltaY;
-            }
-        }
-        else if (distX > 0) {
-            _lastPoint.rx() += deltaX;
-            _lastPoint.ry() += deltaY;
-        }
-    }
-    else {
-        deltaX = qSin(angle) * newlength;
-        deltaY = qCos(angle) * newlength;
-        if (distX < 0) {
-            _firstPoint.rx() = _lastPoint.x() + deltaX;
-            _firstPoint.ry() = _lastPoint.y() + deltaY;
-        }
-        else if (static_cast<int>(distX) == 0) {
-            if (distY > 0) {
-                _firstPoint.ry() += deltaY;
-            }
-            else {
-                _lastPoint.ry() += deltaY;
-            }
-        }
-        else if (distX > 0) {
-            _lastPoint.rx() = _firstPoint.x() + deltaX;
-            _lastPoint.ry() = _firstPoint.x() + deltaY;
-        }
-    }
+    auto xmin = std::min<qreal>(_firstPoint.x(), _lastPoint.x());
+    auto ymin = std::min<qreal>(_firstPoint.y(), _lastPoint.y());
+    _firstPoint.rx() += (_firstPoint.x() - xmin) * (coefficeint - 1);
+    _firstPoint.ry() += (_firstPoint.y() - ymin) * (coefficeint - 1);
+    _lastPoint.rx() += (_lastPoint.x() - xmin) * (coefficeint - 1);
+    _lastPoint.ry() += (_lastPoint.y() - ymin) * (coefficeint - 1);
     draw();
 }
 
@@ -99,29 +57,36 @@ void VGERectangle::draw() {
         if (drawColor == vge::BG_DEFAULT_COLOR){
             drawColor = vge::RED_COLOR;
         }
-    }
-    else {
+    } else {
         drawColor = _color;
     }
 
     _shapePoints->clear();
     if (_filled) {
         const qreal distY = _lastPoint.y() - _firstPoint.y();
-        int step;
-        (distY < 0) ? step = -1 : step = 1;
         int i = 0;
-        while (abs(_firstPoint.y() + i * step) < abs(_lastPoint.y())) {
-            QPointF p1(_firstPoint.x(), _firstPoint.y() + i * step);
-            QPointF p2(_lastPoint.x(), _firstPoint.y() + i * step);
-            bresenhamLine(p1, p2, *_shapePoints);
-            i++;
+        if (distY >= 0) {
+            while (abs(_firstPoint.y() + i) <= abs(_lastPoint.y())) {
+                QPointF p1(_firstPoint.x(), _firstPoint.y() + i);
+                QPointF p2(_lastPoint.x(), _firstPoint.y() + i);
+                bresenhamLinePoints(p1, p2, *_shapePoints);
+                i++;
+            }
+        }
+        else {
+            while (abs(_firstPoint.y() - i) >= abs(_lastPoint.y())) {
+                QPointF p1(_firstPoint.x(), _firstPoint.y() - i);
+                QPointF p2(_lastPoint.x(), _firstPoint.y() - i);
+                bresenhamLinePoints(p1, p2, *_shapePoints);
+                i++;
+            }
         }
     }
     else {
-        bresenhamLine(_firstPoint, QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
-        bresenhamLine(_firstPoint, QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
-        bresenhamLine(_lastPoint,  QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
-        bresenhamLine(_lastPoint,  QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
+        bresenhamLinePoints(_firstPoint, QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
+        bresenhamLinePoints(_firstPoint, QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
+        bresenhamLinePoints(_lastPoint,  QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
+        bresenhamLinePoints(_lastPoint,  QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
     }
 
 

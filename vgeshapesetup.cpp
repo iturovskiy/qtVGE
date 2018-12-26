@@ -234,7 +234,7 @@ void VGEShapeSetUp::save() {
     hide();
     emit updateShape(_color, _coefficientSpinBox->value(), first, last,
                      _radiusOutSpinBox ? _radiusOutSpinBox->value() : 1.0,
-                     _radiusInnSpinBox ? _radiusOutSpinBox->value() : 1.0);
+                     _radiusInnSpinBox ? _radiusInnSpinBox->value() : 1.0);
     _coefficientSpinBox->setValue(100.00);
 }
 

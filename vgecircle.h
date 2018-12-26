@@ -7,6 +7,8 @@
 
 class VGECircle;
 
+QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, QPointF point);
+
 
 class VGECircle : public VGEShape {
     Q_OBJECT

@@ -33,15 +33,18 @@ VGEMainWindow::VGEMainWindow(QWidget *parent)
     : QMainWindow(parent),
       _document(new VGEDocument(this)),
       _scrollArea(new QScrollArea(this)),
-      _leftToolBar(new QToolBar("Tools")),
+      _leftToolBar(new QToolBar(this)),
+      _treeView(new QTreeWidget(this)),
+      _treeItem(new QTreeWidgetItem()),
       _coordXLabel(new QLabel(this)),
       _coordYLabel(new QLabel(this)),
       _toolLabel(new QLabel(this)),
       _messageLabel(new QLabel(this)),
       _toolActionGroup(new QActionGroup(this))
 {
+    this->setFixedHeight(vge::WINDOW_H);
+    this->setFixedWidth(vge::WINDOW_W);
 
-    //QStringList toolbarElementsList({"selection", "dot", "line", "ellipse", "elliptic-curve", "cross"});
     initToolsList();
     initToolbar(_leftToolBar, _toolList, (Qt::LeftToolBarArea));
 
@@ -58,78 +61,87 @@ VGEMainWindow::VGEMainWindow(QWidget *parent)
     _coordYLabel->setText(QString("Y:").append(QString::number(0, 'd', 5)));
 
     _messageLabel->setStyleSheet("font-weight: bold; color: red");
-    _messageLabel->setText(""/*EARLY PRE-ALPHA!"*/);
+    _messageLabel->setText("");
     statusBar()->addWidget(_coordXLabel);
     statusBar()->addWidget(_coordYLabel);
     statusBar()->addWidget(_toolLabel);
     statusBar()->addWidget(_messageLabel);
 
-    connect(_document, &VGEDocument::updateCoord, this, &VGEMainWindow::coordUpdated);
+    connect(_document, &VGEDocument::updateCoord, this, &VGEMainWindow::coordUpdate);
     connect(_document, &VGEDocument::switchToSelection, this, &VGEMainWindow::resetToSelection);
     connect(_document, &VGEDocument::sendMsgToUI, this, &VGEMainWindow::putMessage);
     connect(_document, &VGEDocument::showSetupWindow, this, &VGEMainWindow::openNewWindow);
     resetToSelection();
 }
-void VGEMainWindow::coordUpdated(QPoint coord) {
+
+
+void VGEMainWindow::treeUpdate(QList<QString> list) {
+    _treeView->clear();
+    QTreeWidgetItem * witem = new QTreeWidgetItem(list);
+    _treeView->addTopLevelItem(witem);
+}
+
+
+void VGEMainWindow::coordUpdate(QPoint coord) {
     _coordXLabel->setText(QString().sprintf("%s: %4d", "X", coord.x()));
     _coordYLabel->setText(QString().sprintf("%s: %4d", "Y", coord.y()));
 }
 
 
 void VGEMainWindow::initToolsList() {
-    _toolList.append(ToolPair(vge::SelectShape, "Selection"));
     _toolList.append(ToolPair(vge::DrawLine, "Line"));
     _toolList.append(ToolPair(vge::DrawRectangle, "Rectangle"));
     _toolList.append(ToolPair(vge::DrawCircle, "Circle"));
     _toolList.append(ToolPair(vge::DrawHypocycloid, "Hypocycloid"));
+
+    _toolList.append(ToolPair(vge::SelectShape, "Select"));
+    _toolList.append(ToolPair(vge::SetUp, "Setup shape"));
+    _toolList.append(ToolPair(vge::Move, "Move"));
     _toolList.append(ToolPair(vge::MakeGroup, "Make group"));
     _toolList.append(ToolPair(vge::DeleteShape, "Delete shape"));
-    _toolList.append(ToolPair(vge::Move, "Move"));
-    _toolList.append(ToolPair(vge::Scaling, "Scale"));
-    _toolList.append(ToolPair(vge::Clipping, "Clipping"));
+
     _toolList.append(ToolPair(vge::MakeTangent, "Make tangent"));
-    _toolList.append(ToolPair(vge::SetUp, "Set up shape"));
-    _toolList.append(ToolPair(vge::EraseShape, "Erase shape"));
+    _toolList.append(ToolPair(vge::Clipping, "Clipping"));
+
 }
 
 
 void VGEMainWindow::initToolbar(QToolBar * toolBar, QList<ToolPair> elements, Qt::ToolBarArea area) {
-    QMenu *const fileMenu = menuBar()->addMenu("&File");
-    fileMenu->addAction(tr("E&xit"),this, SLOT(close()), QKeySequence::Quit);
-
-    QMenu *const toolMenu = menuBar()->addMenu("&Tools");
     int counter = 0;
     for (ToolPair mode : elements){
         VGEAction* act = new VGEAction(QPixmap(":/" + mode.second + ".svg"), mode.second, mode.first);
         act->setCheckable(true);
         _toolActionGroup->addAction(act);
+        toolBar->addAction(act);
+        if (counter == 3 || counter == 8) {
+            toolBar->addSeparator();
+        }
 
-        toolMenu->addAction(act);
-
-
-        QObject::connect(act, &VGEAction::toggled, this, &VGEMainWindow::updateMode);
+        QObject::connect(act, &VGEAction::toggled, this, &VGEMainWindow::modeUpdate);
         QObject::connect(act, &VGEAction::toggled, _document, &VGEDocument::setEditorMode);
-
         if (mode.first == vge::SelectShape){
             act->setChecked(true);
             _selectAction = act;
         }
-
-        if (counter > 4){
+        if ((counter > 4 && counter < 10) && (counter != 8)) {
             act->setEnabled(false);
             QObject::connect(_document, &VGEDocument::shapeSelected, act, &VGEAction::enable);
         }
         counter++;
     }
     _toolActionGroup->setExclusive(true);
-    toolBar->addActions(_toolActionGroup->actions());
     toolBar->setFloatable(false);
     toolBar->setMovable(false);
+    _treeView->setColumnCount(1);
+    _treeItem->setText(0, "Items");
+    _treeView->addTopLevelItem(_treeItem);
+//    _treeView->setMaximumWidth(0);
+    toolBar->addWidget(_treeView);
     addToolBar(area, _leftToolBar);
 }
 
 
-void VGEMainWindow::updateMode(vge::editorMode mode) {
+void VGEMainWindow::modeUpdate(vge::editorMode mode) {
     QString name("None");
     for (ToolPair pair : _toolList){
         if (pair.first == mode){

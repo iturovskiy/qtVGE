@@ -11,8 +11,8 @@ namespace vge {
     static const int IMAGE_W = 2480;
 
     // default window params
-    static const int WINDOW_H = 400;
-    static const int WINDOW_W = 600;
+    static const int WINDOW_H = 720;
+    static const int WINDOW_W = 1024;
 
     static const int DEFAULT_W = 2;
     static const int SEARCH_W = 6;
@@ -34,13 +34,12 @@ namespace vge {
         DrawCircle,
         DrawHypocycloid,
         MakeGroup,
-        DeleteShape,        // from group
+        DeleteShape,
         Move,
         Scaling,
         Clipping,
         MakeTangent,
-        SetUp,
-        EraseShape         // from document
+        SetUp
     };
 
     // shapes

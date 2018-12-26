@@ -10,10 +10,10 @@
 
 static quint32 count = 0;
 
-
-void bresenhamLine(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line);
-void bresenhamEllipse(const QPointF &center, qreal radius, QVector<QPoint> &ellipse, bool filled = true);
-void drawHypocycloid(const QPointF &center, qreal radiusOut, qreal radiusInn, QVector<QPoint> &hypo);
+int NOD(int a, int b);
+void bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line);
+void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &ellipse, bool filled = true);
+void hypocycloidPoints(const QPointF &center, qreal radiusOut, qreal radiusInn, QVector<QPoint> &hypo);
 
 
 class VGEShape;
@@ -24,15 +24,13 @@ class VGERShape : public QObject {
     Q_OBJECT
 
 public:
-    VGERShape() : _points(nullptr), _keyPoints(nullptr) {}
-    VGERShape(QVector<QPoint> *points, QColor color, QVector<QPoint> *keyPoints = nullptr);
+    VGERShape() : _points(nullptr) {}
+    VGERShape(QVector<QPoint> *points, QColor color);
     void operator() (QImage *image) const;
 
 private:
     QVector<QPoint> *_points;
     QPen _pen;
-    QVector<QPoint> *_keyPoints;
-    QPen _keyPen;
 
 friend class VGEShape;
 
@@ -76,6 +74,9 @@ public:
 
     void setColor(const QColor &newColor)
     { _color = newColor; draw(); }
+
+    void setPoint(QVector<QPoint> *point)
+    { delete _shapePoints; std::swap(_shapePoints, point); }
 
     int test(QPoint point);
 

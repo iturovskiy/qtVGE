@@ -22,17 +22,10 @@ void VGEHypocycloid::move(QPointF displacement) {
 
 
 void VGEHypocycloid::scale(qreal coefficeint) {
-    qreal disp;
-    if (coefficeint > 0) {
-        disp = _radiusOut - _radiusOut / coefficeint;
-        _center.rx() += disp / sqrt(2);
-        _center.ry() -= disp / sqrt(2);
-    }
-    else {
-        disp = _radiusOut / coefficeint - _radiusOut;
-        _center.rx() -= disp / sqrt(2);
-        _center.ry() += disp / sqrt(2);
-    }
+    auto xmin = _center.x() - _radiusOut;
+    auto ymin = _center.y() - _radiusOut;
+    _center.rx() += (_center.x() - xmin) * (coefficeint - 1);
+    _center.ry() += (_center.y() - ymin) * (coefficeint - 1);
     _radiusOut *= coefficeint;
     _radiusInn *= coefficeint;
     draw();
@@ -93,22 +86,20 @@ void VGEHypocycloid::draw() {
         if (drawColor == vge::BG_DEFAULT_COLOR){
             drawColor = vge::RED_COLOR;
         }
-    }
-    else {
+    } else {
         drawColor = _color;
     }
 
     _shapePoints->clear();
 
     if (_pressCount >= 2) {
-        drawHypocycloid(_center, _radiusOut, _radiusInn, *_shapePoints);
+        hypocycloidPoints(_center, _radiusOut, _radiusInn, *_shapePoints);
     }
     else {
-        bresenhamEllipse(_center, _radiusOut, *_shapePoints, false);
+        bresenhamCirclePoints(_center, _radiusOut, *_shapePoints, false);
         if (_pressCount == 1) {
-            // recount
             QPoint point(static_cast<int>(_center.x()), static_cast<int>((_center.y() - _radiusOut) + _radiusInn));
-            bresenhamEllipse(point, _radiusInn, *_shapePoints, false);
+            bresenhamCirclePoints(point, _radiusInn, *_shapePoints, false);
         }
     }
 

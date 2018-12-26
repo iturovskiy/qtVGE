@@ -75,11 +75,22 @@ void VGEDocument::mousePressEvent(QMouseEvent *event) {
     qDebug() << "Document - mouse PRESS; mod: " << _mode;
     if (event->button() == Qt::LeftButton){
         if (_mode == vge::SelectShape) {
+            emit sendMsgToUI("Выберите фигуру", false);
             searchPixel(event->pos());
             updateImage();
             if (!_selectedShapeList.empty()){
                 emit sendMsgToUI("Выберите ещё фигуры", false);
             }
+        }
+        else if (_mode == vge::DeleteShape) {
+            emit sendMsgToUI("Выберите фигуру для удаления", false);
+            unSelect();
+            searchPixel(event->pos());
+            if (!_selectedShapeList.empty()){
+                _shapeList.removeAll(_selectedShapeList.last());
+                unSelect();
+            }
+            updateImage();
         }
         else if (_mode == vge::DrawLine || _mode == vge::Move){
             emit sendMsgToUI("Нарисуйте линию", false);
@@ -126,17 +137,22 @@ void VGEDocument::mousePressEvent(QMouseEvent *event) {
                 emit sendMsgToUI("Выбрано недостаточно окружностей", true);
                 emit switchToSelection();
             }
-
-            VGECircle * circl1 = qobject_cast<VGECircle *>(_selectedShapeList.first());
-            VGECircle * circl2 = qobject_cast<VGECircle *>(_selectedShapeList.last());
-            if (circl1 && circl2) {
-                _tmpShape = new VGELine(this);
-                updateImage();
-            }
             else {
-                _previousWasFail = true;
-                emit sendMsgToUI("Выбраны не окружности", true);
-                emit switchToSelection();
+                VGECircle * circl1 = qobject_cast<VGECircle *>(_selectedShapeList.first());
+                VGECircle * circl2 = qobject_cast<VGECircle *>(_selectedShapeList.last());
+                if (circl1 && circl2) {
+                    auto points = tangent(circl1, circl2, event->pos());
+                    VGELine *line = new VGELine(this);
+                    line->setFP(points.first);
+                    line->setLP(points.second);
+                    _shapeList.append(line);
+                    updateImage();
+                }
+                else {
+                    _previousWasFail = true;
+                    emit sendMsgToUI("Выбраны не окружности", true);
+                    emit switchToSelection();
+                }
             }
         }
     }
@@ -208,10 +224,6 @@ void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
         delList.clear();
         emit switchToSelection();
         updateImage();
-    }
-    else if (_mode == vge::MakeTangent) {
-        // todo
-
     }
 }
 

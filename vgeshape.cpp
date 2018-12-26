@@ -22,10 +22,9 @@ int VGEShape::test(QPoint point) {
 }
 
 
-VGERShape::VGERShape(QVector<QPoint> *points, QColor color, QVector<QPoint> *keyPoints) :
-_points(points), _pen(color), _keyPoints(keyPoints), _keyPen(QColor(0xFF, 0xFF, 0, 0xFF)) {
+VGERShape::VGERShape(QVector<QPoint> *points, QColor color) :
+_points(points), _pen(color) {
     _pen.setWidth(vge::DEFAULT_W);
-    _keyPen.setWidth(vge::DEFAULT_W * 5);
 }
 
 
@@ -36,17 +35,13 @@ void VGERShape::operator()(QImage *image) const {
     QPainter painter(image);
     painter.setPen(_pen);
     painter.drawPoints(_points->data(), _points->size());
-    if(_keyPoints) {
-        painter.setPen(_keyPen);
-        painter.drawPoints(_keyPoints->data(), _keyPoints->size());
-    }
     painter.end();
 }
 
 
 /// bresenham
 
-void bresenhamLine(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) {
+void bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) {
 
     int x2 = static_cast<int>(lp.x());
     int x1 = static_cast<int>(fp.x());
@@ -74,7 +69,7 @@ void bresenhamLine(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) 
 }
 
 
-void bresenhamEllipse(const QPointF &center, qreal radius, QVector<QPoint> &ellipse, bool filled) {
+void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &circle, bool filled) {
     const int x0 = static_cast<int>(center.x());
     const int y0 = static_cast<int>(center.y());
     int x = 0;
@@ -84,14 +79,14 @@ void bresenhamEllipse(const QPointF &center, qreal radius, QVector<QPoint> &elli
     while(y >= 0) {
 
         if (filled) {
-            bresenhamLine(QPoint(x0 - x, y0 + y), QPoint(x0 + x, y0 + y), ellipse);
-            bresenhamLine(QPoint(x0 - x, y0 - y), QPoint(x0 + x, y0 - y), ellipse);
+            bresenhamLinePoints(QPoint(x0 - x, y0 + y), QPoint(x0 + x, y0 + y), circle);
+            bresenhamLinePoints(QPoint(x0 - x, y0 - y), QPoint(x0 + x, y0 - y), circle);
         }
         else {
-            ellipse.append(QPoint(x0 - x, y0 + y));
-            ellipse.append(QPoint(x0 + x, y0 + y));
-            ellipse.append(QPoint(x0 - x, y0 - y));
-            ellipse.append(QPoint(x0 + x, y0 - y));
+            circle.append(QPoint(x0 - x, y0 + y));
+            circle.append(QPoint(x0 + x, y0 + y));
+            circle.append(QPoint(x0 - x, y0 - y));
+            circle.append(QPoint(x0 + x, y0 - y));
         }
 
         error = 2 * (delta + y) - 1;
@@ -113,16 +108,29 @@ void bresenhamEllipse(const QPointF &center, qreal radius, QVector<QPoint> &elli
 }
 
 
-void drawHypocycloid(const QPointF &center, qreal radiusOut, qreal radiusInn, QVector<QPoint> &hypo) {
+void hypocycloidPoints(const QPointF &center, qreal radiusOut, qreal radiusInn, QVector<QPoint> &hypo) {
     const int x0 = static_cast<int>(center.x());
     const int y0 = static_cast<int>(center.y());
-    const int R  = static_cast<int>(radiusOut);
-    const int r  = static_cast<int>(radiusInn);
-    const double k = R / r;
-    int x, y;
-    for (double f = -M_PI; f <= M_PI; f += 0.001) {
-        x = static_cast<int>(r * ((k - 1) * cos(f) + cos((k - 1) * f)));
-        y = static_cast<int>(r * ((k - 1) * sin(f) - sin((k - 1) * f)));
+    const double k = radiusOut / radiusInn;
+    const double a = radiusInn * (k - 1);
+    int nod = NOD(radiusOut, radiusInn);
+    double loop = radiusInn / nod;
+    double x, y;
+    for (double f = 0; f < 2 * M_PI * loop; f += 0.001) {
+        x = (a * (cos(f) + cos((k - 1.0) * f) / (k - 1.0)));
+        y = (a * (sin(f) - sin((k - 1.0) * f) / (k - 1.0)));
         hypo.append(QPoint(x0 + x, y0 + y));
     }
+    return;
+}
+
+
+int NOD (int a, int b) {
+    while (a != b) {
+        if (a > b)
+            a -= b;
+        else
+            b -= a;
+    }
+    return a;
 }

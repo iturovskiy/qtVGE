@@ -19,54 +19,12 @@ void VGELine::move(QPointF displacement) {
 
 
 void VGELine::scale(qreal coefficeint) {
-    const qreal distX = _lastPoint.x() - _firstPoint.x() ;
-    const qreal distY = _lastPoint.y() - _firstPoint.x() ;
-    const qreal length = qSqrt(distX * distX + distY * distY);
-    const qreal newlength = coefficeint * length;
-    const qreal deltaLength = newlength - length;
-    const qreal tan = distX / distY;
-    const qreal angle = qAtan(tan);
-    qreal deltaX, deltaY;
-    if (deltaLength > 0) {
-        deltaX = qSin(angle) * deltaLength;
-        deltaY = qCos(angle) * deltaLength;
-        if (distX < 0) {
-            _firstPoint.rx() += deltaX;
-            _firstPoint.ry() += deltaY;
-        }
-        else if (static_cast<int>(distX) == 0) {
-            if (distY > 0) {
-                _firstPoint.ry() += deltaY;
-            }
-            else {
-                _lastPoint.ry() += deltaY;
-            }
-        }
-        else if (distX > 0) {
-            _lastPoint.rx() += deltaX;
-            _lastPoint.ry() += deltaY;
-        }
-    }
-    else {
-        deltaX = qSin(angle) * newlength;
-        deltaY = qCos(angle) * newlength;
-        if (distX < 0) {
-            _firstPoint.rx() = _lastPoint.x() + deltaX;
-            _firstPoint.ry() = _lastPoint.y() + deltaY;
-        }
-        else if (static_cast<int>(distX) == 0) {
-            if (distY > 0) {
-                _firstPoint.ry() += deltaY;
-            }
-            else {
-                _lastPoint.ry() += deltaY;
-            }
-        }
-        else if (distX > 0) {
-            _lastPoint.rx() = _firstPoint.x() + deltaX;
-            _lastPoint.ry() = _firstPoint.x() + deltaY;
-        }
-    }
+    auto xmin = std::min<qreal>(_firstPoint.x(), _lastPoint.x());
+    auto ymin = std::min<qreal>(_firstPoint.y(), _lastPoint.y());
+    _firstPoint.rx() += (_firstPoint.x() - xmin) * (coefficeint - 1);
+    _firstPoint.ry() += (_firstPoint.y() - ymin) * (coefficeint - 1);
+    _lastPoint.rx() += (_lastPoint.x() - xmin) * (coefficeint - 1);
+    _lastPoint.ry() += (_lastPoint.y() - ymin) * (coefficeint - 1);
     draw();
 }
 
@@ -104,7 +62,7 @@ void VGELine::draw() {
     }
 
     _shapePoints->clear();
-    bresenhamLine(_firstPoint, _lastPoint, *_shapePoints);
+    bresenhamLinePoints(_firstPoint, _lastPoint, *_shapePoints);
 
     if (_raster) {
         delete _raster;

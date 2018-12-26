@@ -52,8 +52,9 @@ public:
 
 
 public slots:
-    void coordUpdated(QPoint coord);
-    void updateMode(vge::editorMode);
+    void treeUpdate(QList<QString> list);
+    void coordUpdate(QPoint coord);
+    void modeUpdate(vge::editorMode);
     void resetToSelection();
     void putMessage(QString text, bool isError);
     void openNewWindow(QWidget * window);
@@ -69,7 +70,8 @@ private:
     VGEDocument *_document;
     QScrollArea *_scrollArea;
     QToolBar *_leftToolBar;
-    //QTreeView *_rightTree;
+    QTreeWidget *_treeView;
+    QTreeWidgetItem *_treeItem;
     QLabel *_coordXLabel;
     QLabel *_coordYLabel;
     QLabel *_toolLabel;
