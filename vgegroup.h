@@ -6,7 +6,7 @@
 class VGEGroup;
 
 
-class VGEGroup : protected VGEShape {
+class VGEGroup : public VGEShape {
     Q_OBJECT
 
 public:
@@ -15,8 +15,9 @@ public:
                      VGEShape(parent, color) {}
 
     explicit VGEGroup(QObject *parent, QColor color,
-                      QList<VGEShape *> shList, QString name);
+                      QList<VGEShape *> shList);
 
+    void clip(QPointF fp, QPointF lp) override;
     void move(QPointF displacement) override;
     void scale(qreal coefficeint) override;
     void handleMousePressEvent(QMouseEvent *event) override;
@@ -24,23 +25,18 @@ public:
     void handleMouseReleaseEvent(QMouseEvent *event) override;
     VGERShape& getRaster() override;
 
-    QString str() const override
-    { return _name; }
-
-    inline void setName(QString newname)
-    { _name = newname; }
+    QList<VGEShape *> getList()
+    { return _shList; }
 
     VGEShape * get(size_t index);
     void add(VGEShape * shape);
-    bool del(size_t index);
-    bool del(QString name);
+    void del(QString name);
 
     void draw() override;
 
 
 private:
     QList<VGEShape *> _shList;
-    QString _name;
 
 };
 

@@ -91,6 +91,7 @@ void VGEDocument::mousePressEvent(QMouseEvent *event) {
                 unSelect();
             }
             updateImage();
+            emit updateTree(_shapeList);
         }
         else if (_mode == vge::DrawLine || _mode == vge::Move){
             emit sendMsgToUI("Нарисуйте линию", false);
@@ -106,7 +107,7 @@ void VGEDocument::mousePressEvent(QMouseEvent *event) {
         }
         else if (_mode == vge::Clipping){
             emit sendMsgToUI("Нарисуйте прямоугольную область", false);
-            VGERectangle  * rect = new VGERectangle(this);
+            VGERectangle  * rect = new VGERectangle(this, vge::PUR_COLOR);
             rect->change();
             _tmpShape = qobject_cast<VGEShape *>(rect);
             _tmpShape->handleMousePressEvent(event);
@@ -147,6 +148,7 @@ void VGEDocument::mousePressEvent(QMouseEvent *event) {
                     line->setLP(points.second);
                     _shapeList.append(line);
                     updateImage();
+                    emit updateTree(_shapeList);
                 }
                 else {
                     _previousWasFail = true;
@@ -173,7 +175,7 @@ void VGEDocument::mouseMoveEvent(QMouseEvent *event) {
     }
 }
 
-/// todo tangent
+
 void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
     qDebug() << "Document - mouse RELEASE; mod: " << _mode;
     if (_mode == vge::DrawLine   || _mode == vge::DrawRectangle || _mode == vge::DrawCircle) {
@@ -183,6 +185,7 @@ void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
             _tmpShape = nullptr;
         }
         updateImage();
+        emit updateTree(_shapeList);
     }
     else if(_mode == vge::DrawHypocycloid) {
         if (_hypoCount == 0) {
@@ -196,6 +199,7 @@ void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
             _hypoCount = 0;
         }
         updateImage();
+        emit updateTree(_shapeList);
     }
     else if (_mode == vge::Move) {
         VGELine* linePtr = qobject_cast<VGELine *>(_tmpShape);
@@ -210,20 +214,35 @@ void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
         updateImage();
     }
     else if (_mode == vge::Clipping) {
-        // todo
         VGERectangle *rect = qobject_cast<VGERectangle *>(_tmpShape);
-        QList<VGEShape *> stayList = rect->clip();
-        QList<VGEShape *> delList = {};
+        QList<VGEShape *> del = {};
         for (auto &item :  _shapeList) {
-            for (auto it : stayList) {
-                if (item->str().compare(it->str()) != 0) {
-                    delList.append(item);
-                }
+            item->clip(rect->getFP(), rect->getLP());
+            if (item->getPoints()->empty()) {
+                del.append(item);
             }
         }
-        delList.clear();
+        for (auto item : del) {
+            _shapeList.removeAll(item);
+        }
         emit switchToSelection();
         updateImage();
+        emit updateTree(_shapeList);
+    }
+    else if (_mode == vge::MakeGroup) {
+        if (_selectedShapeList.empty()){
+            emit sendMsgToUI("Фигуры не выбраны", true);
+        }
+        else {
+            QList<VGEShape *> list = _selectedShapeList;
+            for (auto item : list) {
+                _shapeList.removeAll(item);
+            }
+            auto *group = new VGEGroup(this, vge::SHAPE_DEFAULT_COLOR, list);
+            _shapeList.append(qobject_cast<VGEShape*>(group));
+            updateImage();
+            emit updateTree(_shapeList);
+        }
     }
 }
 
@@ -261,7 +280,7 @@ void VGEDocument::setEditorMode(vge::editorMode mode) {
             // line
             if (qobject_cast<VGELine *>(shape)) {
                 VGELine *line = qobject_cast<VGELine *>(shape);
-                _setupAction = new VGEShapeSetUp(nullptr, vge::Line, shape->getColor(), line->getFP(), line->getSP());
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Line, shape->getColor(), shape->getName(), line->getFP(), line->getSP());
                 connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
                 connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
                 _setupAction->show();
@@ -269,7 +288,7 @@ void VGEDocument::setEditorMode(vge::editorMode mode) {
             // rectangle
             else if (qobject_cast<VGERectangle *>(shape)) {
                 VGERectangle *rect = qobject_cast<VGERectangle *>(shape);
-                _setupAction = new VGEShapeSetUp(nullptr, vge::Rectangle, shape->getColor(), rect->getFP(), rect->getSP());
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Rectangle, shape->getColor(), shape->getName(), rect->getFP(), rect->getLP());
                 connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
                 connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
                 _setupAction->show();
@@ -277,7 +296,7 @@ void VGEDocument::setEditorMode(vge::editorMode mode) {
             // circle
             else if (qobject_cast<VGECircle *>(shape)) {
                 VGECircle *circle = qobject_cast<VGECircle *>(shape);
-                _setupAction = new VGEShapeSetUp(nullptr, vge::Circle, shape->getColor(),
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Circle, shape->getColor(), shape->getName(),
                                         circle->getCenter(), circle->getRadius());
                 connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
                 connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
@@ -286,11 +305,19 @@ void VGEDocument::setEditorMode(vge::editorMode mode) {
             // hypocycloid
             else if (qobject_cast<VGEHypocycloid *>(shape)) {
                 VGEHypocycloid *hypo = qobject_cast<VGEHypocycloid *>(shape);
-                _setupAction = new VGEShapeSetUp(nullptr, vge::Hypocycloid, shape->getColor(),
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Hypocycloid,  shape->getColor(), shape->getName(),
                                         hypo->getCenter(), hypo->getRadiusOut(), hypo->getRadiusInn());
                 connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
                 connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
                 _setupAction->show();
+            }
+            //group
+            else if (qobject_cast<VGEGroup *>(shape)) {
+                _setupAction = new VGEShapeSetUp(nullptr, vge::Group,  shape->getColor(), shape->getName());
+                connect(_setupAction, &VGEShapeSetUp::finished, this, &VGEDocument::acceptParamsClose);
+                connect(_setupAction, &VGEShapeSetUp::updateShape, this, &VGEDocument::receiveParams);
+                _setupAction->show();
+
             }
         }
     }
@@ -312,13 +339,14 @@ void VGEDocument::acceptParamsClose() {
 }
 
 
-void VGEDocument::receiveParams(QColor color, qreal coef, QPointF first, QPointF last, qreal rOuter, qreal rInner) {
+void VGEDocument::receiveParams(QString name, QColor color, qreal coef, QPointF first, QPointF last, qreal rOuter, qreal rInner) {
     VGEShape *shape = _selectedShapeList.last();
     shape->setColor(color);
     if (qobject_cast<VGELine *>(shape)){
         auto *line = qobject_cast<VGELine *>(shape);
         line->setFP(first);
         line->setLP(last);
+        line->setName(name);
         if (coef != 100.00) {
             line->scale(coef / 100);
         }
@@ -327,6 +355,7 @@ void VGEDocument::receiveParams(QColor color, qreal coef, QPointF first, QPointF
         auto *rect = qobject_cast<VGERectangle *>(shape);
         rect->setFP(first);
         rect->setLP(last);
+        rect->setName(name);
         if (coef != 100.00) {
             rect->scale(coef / 100);
         }
@@ -335,6 +364,7 @@ void VGEDocument::receiveParams(QColor color, qreal coef, QPointF first, QPointF
         auto *circle = qobject_cast<VGECircle *>(shape);
         circle->setCenter(first);
         circle->setRadius(rOuter);
+        circle->setName(name);
         if (coef != 100.00) {
             circle->scale(coef / 100);
         }
@@ -344,10 +374,88 @@ void VGEDocument::receiveParams(QColor color, qreal coef, QPointF first, QPointF
         hypo->setCenter(first);
         hypo->setRadiusOut(rOuter);
         hypo->setRadiusInn(rInner);
+        hypo->setName(name);
         if (coef != 100.00) {
             hypo->scale(coef / 100);
         }
     }
+    else if (qobject_cast<VGEGroup *>(shape)){
+        auto *grp = qobject_cast<VGEGroup *>(shape);
+        grp->setName(name);
+        if (coef != 100.00) {
+            grp->scale(coef / 100);
+        }
+    }
     acceptParamsClose();
+    updateImage();
+    emit updateTree(_shapeList);
+}
+
+// todo
+void VGEDocument::deleteShape(VGEShape *shp) {
+    if (!shp) {
+        return;
+    }
+    for (auto item : _shapeList) {
+        if (item == shp) {
+            _shapeList.removeAll(shp);
+            break;
+        }
+        if (qobject_cast<VGEGroup *>(item)) {
+           auto grp = qobject_cast<VGEGroup *>(item);
+           for (auto i : grp->getList()) {
+               if (i == shp) {
+                   grp->del(shp->getName());
+                   _shapeList.append(shp);
+                   break;
+               }
+           }
+        }
+    }
+    updateImage();
+}
+
+
+void VGEDocument::selectShape(VGEShape *shp) {
+    if (!shp) {
+        return;
+    }
+    for (auto item : _shapeList) {
+        if (item == shp) {
+            if (shp && !shp->isSelected()){
+                shp->select(true);
+                _selectedShapeList.append(shp);
+                emit shapeSelected(true);
+            }
+            else if (shp) {
+                shp->select(false);
+                _selectedShapeList.removeAll(shp);
+                if(_selectedShapeList.empty()) {
+                    emit shapeSelected(false);
+                }
+            }
+            break;
+        }
+        if (qobject_cast<VGEGroup *>(item)) {
+           auto grp = qobject_cast<VGEGroup *>(item);
+           for (auto i : grp->getList()) {
+               if (i == shp) {
+                   if (shp && !shp->isSelected()){
+                       shp->select(true);
+                       _selectedShapeList.append(shp);
+                       emit shapeSelected(true);
+                   }
+                   else if (shp) {
+                       shp->select(false);
+                       _selectedShapeList.removeAll(shp);
+                       if(_selectedShapeList.empty()) {
+                           emit shapeSelected(false);
+                       }
+                   }
+                   break;
+               }
+           }
+        }
+    }
     updateImage();
 }

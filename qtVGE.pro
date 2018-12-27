@@ -22,7 +22,8 @@ SOURCES += \
     vgecircle.cpp \
     vgegroup.cpp \
     vgeshapesetup.cpp \
-    vgeshape.cpp
+    vgeshape.cpp \
+    treewidget.cpp
 
 HEADERS += \
     configs.h \
@@ -34,6 +35,8 @@ HEADERS += \
     vgecircle.h \
     vgegroup.h \
     vgeshapesetup.h \
-    vgeshape.h
+    vgeshape.h \
+    treewidget.h
 
-FORMS +=
+FORMS += \
+    widget.ui

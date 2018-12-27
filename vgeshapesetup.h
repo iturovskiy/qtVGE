@@ -64,23 +64,29 @@ public:
     VGEShapeSetUp(QWidget *parent,
                   vge::shapeType type,
                   QColor color,
+                  QString name,
                   QPointF first,
-                  QPointF last); //
+                  QPointF last);
 
     VGEShapeSetUp(QWidget *parent,
                   vge::shapeType type,
                   QColor color,
+                  QString name,
                   QPointF center,
                   qreal radius);
 
     VGEShapeSetUp(QWidget *parent,
-                   vge::shapeType type,
-                   QColor color,
-                   QPointF center,
-                   qreal oradius,
-                   qreal iradius);
+                  vge::shapeType type,
+                  QColor color,
+                  QString name,
+                  QPointF center,
+                  qreal oradius,
+                  qreal iradius);
 
-
+    VGEShapeSetUp(QWidget *parent,
+                  vge::shapeType type,
+                  QColor color,
+                  QString name);
 
     ~VGEShapeSetUp()
     { delete _colorButton; }
@@ -97,7 +103,7 @@ private:
 
 signals:
     void finished();
-    void updateShape(QColor color, qreal coef, QPointF first, QPointF last, float rOuter, float rInner);
+    void updateShape(QString name, QColor color, qreal coef, QPointF first, QPointF last, float rOuter, float rInner);
 
 
 public slots:
@@ -114,13 +120,18 @@ private:
     vge::shapeType _shapeType;
     QWidget* _mainWgt = new QWidget(this);
 
-    QLabel* _firstCoordXLabel = new QLabel(this);
-    QDoubleSpinBox* _firstCoordXSpinBox = new QDoubleSpinBox(this);
-    QLabel* _firstCoordYLabel  = new QLabel(this);
-    QDoubleSpinBox* _firstCoordYSpinBox = new QDoubleSpinBox(this);
+    QString _name;
+    QLabel* _nameLabel = new QLabel(this);
+    QLineEdit* _nameLE = new QLineEdit(this);
 
     QLabel* _coefficientLabel = new QLabel(this);
     QDoubleSpinBox* _coefficientSpinBox = new QDoubleSpinBox(this);
+
+    QLabel* _firstCoordXLabel = nullptr; // new QLabel(this);
+    QDoubleSpinBox* _firstCoordXSpinBox = nullptr; //new QDoubleSpinBox(this);
+    QLabel* _firstCoordYLabel  = nullptr; // new QLabel(this);
+    QDoubleSpinBox* _firstCoordYSpinBox = nullptr; // new QDoubleSpinBox(this);
+
 
     QLabel* _lastCoordXLabel  = nullptr;
     QDoubleSpinBox* _lastCoordXSpinBox = nullptr;

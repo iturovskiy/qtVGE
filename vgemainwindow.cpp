@@ -34,16 +34,13 @@ VGEMainWindow::VGEMainWindow(QWidget *parent)
       _document(new VGEDocument(this)),
       _scrollArea(new QScrollArea(this)),
       _leftToolBar(new QToolBar(this)),
-      _treeView(new QTreeWidget(this)),
-      _treeItem(new QTreeWidgetItem()),
+      _widget(new TreeWidget(nullptr)),
       _coordXLabel(new QLabel(this)),
       _coordYLabel(new QLabel(this)),
       _toolLabel(new QLabel(this)),
       _messageLabel(new QLabel(this)),
       _toolActionGroup(new QActionGroup(this))
 {
-    this->setFixedHeight(vge::WINDOW_H);
-    this->setFixedWidth(vge::WINDOW_W);
 
     initToolsList();
     initToolbar(_leftToolBar, _toolList, (Qt::LeftToolBarArea));
@@ -71,14 +68,12 @@ VGEMainWindow::VGEMainWindow(QWidget *parent)
     connect(_document, &VGEDocument::switchToSelection, this, &VGEMainWindow::resetToSelection);
     connect(_document, &VGEDocument::sendMsgToUI, this, &VGEMainWindow::putMessage);
     connect(_document, &VGEDocument::showSetupWindow, this, &VGEMainWindow::openNewWindow);
+
+    connect(_document, &VGEDocument::updateTree, _widget, &TreeWidget::update);
+    connect(_widget, &TreeWidget::deleteShape, _document, &VGEDocument::deleteShape);
+    connect(_widget, &TreeWidget::selectShape, _document, &VGEDocument::selectShape);
+
     resetToSelection();
-}
-
-
-void VGEMainWindow::treeUpdate(QList<QString> list) {
-    _treeView->clear();
-    QTreeWidgetItem * witem = new QTreeWidgetItem(list);
-    _treeView->addTopLevelItem(witem);
 }
 
 
@@ -95,13 +90,13 @@ void VGEMainWindow::initToolsList() {
     _toolList.append(ToolPair(vge::DrawHypocycloid, "Hypocycloid"));
 
     _toolList.append(ToolPair(vge::SelectShape, "Select"));
+    _toolList.append(ToolPair(vge::DeleteShape, "Delete shape"));
     _toolList.append(ToolPair(vge::SetUp, "Setup shape"));
     _toolList.append(ToolPair(vge::Move, "Move"));
-    _toolList.append(ToolPair(vge::MakeGroup, "Make group"));
-    _toolList.append(ToolPair(vge::DeleteShape, "Delete shape"));
 
     _toolList.append(ToolPair(vge::MakeTangent, "Make tangent"));
     _toolList.append(ToolPair(vge::Clipping, "Clipping"));
+    _toolList.append(ToolPair(vge::MakeGroup, "Make group"));
 
 }
 
@@ -113,7 +108,7 @@ void VGEMainWindow::initToolbar(QToolBar * toolBar, QList<ToolPair> elements, Qt
         act->setCheckable(true);
         _toolActionGroup->addAction(act);
         toolBar->addAction(act);
-        if (counter == 3 || counter == 8) {
+        if (counter == 3 || counter == 7) {
             toolBar->addSeparator();
         }
 
@@ -123,7 +118,7 @@ void VGEMainWindow::initToolbar(QToolBar * toolBar, QList<ToolPair> elements, Qt
             act->setChecked(true);
             _selectAction = act;
         }
-        if ((counter > 4 && counter < 10) && (counter != 8)) {
+        if (counter > 5 && counter < 9) {
             act->setEnabled(false);
             QObject::connect(_document, &VGEDocument::shapeSelected, act, &VGEAction::enable);
         }
@@ -132,11 +127,7 @@ void VGEMainWindow::initToolbar(QToolBar * toolBar, QList<ToolPair> elements, Qt
     _toolActionGroup->setExclusive(true);
     toolBar->setFloatable(false);
     toolBar->setMovable(false);
-    _treeView->setColumnCount(1);
-    _treeItem->setText(0, "Items");
-    _treeView->addTopLevelItem(_treeItem);
-//    _treeView->setMaximumWidth(0);
-    toolBar->addWidget(_treeView);
+    toolBar->addWidget(_widget);
     addToolBar(area, _leftToolBar);
 }
 

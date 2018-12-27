@@ -16,7 +16,8 @@ class VGECircle : public VGEShape {
 public:
     explicit VGECircle(QObject *parent = nullptr,
                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                     VGEShape(parent, color) {}
+                     VGEShape(parent, color)
+    { _name = QString::fromStdString(std::string("circle") + std::to_string(count++)); }
 
     explicit VGECircle(QObject *parent, QColor color,
                      QPointF center, qreal radius);
@@ -27,7 +28,6 @@ public:
     void handleMouseMoveEvent(QMouseEvent *event) override;
     void handleMouseReleaseEvent(QMouseEvent *event) override;
     VGERShape& getRaster() override;
-    QString str() const override; //todo
 
     inline QPointF getCenter() const
     { return _center; }
@@ -42,6 +42,10 @@ public:
     { _radius = radius; draw(); }
 
     void draw() override;
+
+
+private:
+    void bresenhamCircle(QVector<QPoint> &circle);
 
 
 private:

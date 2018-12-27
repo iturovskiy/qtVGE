@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "vgedocument.h"
 #include "configs.h"
+#include "treewidget.h"
 
 #include <QList>
 #include <QtWidgets>
@@ -52,7 +53,6 @@ public:
 
 
 public slots:
-    void treeUpdate(QList<QString> list);
     void coordUpdate(QPoint coord);
     void modeUpdate(vge::editorMode);
     void resetToSelection();
@@ -70,8 +70,7 @@ private:
     VGEDocument *_document;
     QScrollArea *_scrollArea;
     QToolBar *_leftToolBar;
-    QTreeWidget *_treeView;
-    QTreeWidgetItem *_treeItem;
+    TreeWidget *_widget;
     QLabel *_coordXLabel;
     QLabel *_coordYLabel;
     QLabel *_toolLabel;

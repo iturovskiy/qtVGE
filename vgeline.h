@@ -13,7 +13,8 @@ class VGELine : public VGEShape {
 public:
     explicit VGELine(QObject *parent = nullptr,
                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                     VGEShape(parent, color) {}
+                     VGEShape(parent, color)
+    {_name = QString::fromStdString(std::string("line") + std::to_string(count++));}
 
     explicit VGELine(QObject *parent, QColor color,
                      QPointF firstPoint, QPointF lastPoint);
@@ -24,9 +25,6 @@ public:
     void handleMouseMoveEvent(QMouseEvent *event) override;
     void handleMouseReleaseEvent(QMouseEvent *event) override;
     VGERShape& getRaster() override;
-    QString str() const override;
-
-    void makeTangent(QPointF pos, VGECircle *first, VGECircle *second); /// ?
 
     inline QPointF getFP() const
     { return _firstPoint; }
@@ -41,6 +39,9 @@ public:
     { _lastPoint = point; draw(); }
 
     void draw() override;
+
+private:
+    void bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line);
 
 
 private:

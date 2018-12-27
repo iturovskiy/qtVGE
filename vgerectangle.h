@@ -12,7 +12,8 @@ class VGERectangle : public VGEShape {
 public:
     explicit VGERectangle(QObject *parent = nullptr,
                           QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                          VGEShape(parent, color) {}
+                          VGEShape(parent, color)
+    {_name = QString::fromStdString(std::string("rectangle") + std::to_string(count++));}
 
     explicit VGERectangle(QObject *parent, QColor color,
                           QPointF firstPoint, QPointF lastPoint);
@@ -23,14 +24,12 @@ public:
     void handleMouseMoveEvent(QMouseEvent *event) override;
     void handleMouseReleaseEvent(QMouseEvent *event) override;
     VGERShape& getRaster() override;
-    QString str() const override;
 
-    QList<VGEShape *> clip(); /// todo
 
     inline QPointF getFP() const
     { return _firstPoint; }
 
-    inline QPointF getSP() const
+    inline QPointF getLP() const
     { return _lastPoint; }
 
     inline bool filled() const

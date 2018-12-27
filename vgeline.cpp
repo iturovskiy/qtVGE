@@ -5,6 +5,7 @@
 
 VGELine::VGELine(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint) :
 VGEShape(parent, color), _firstPoint(firstPoint), _lastPoint(lastPoint) {
+    _name = QString::fromStdString(std::string("line") + std::to_string(count++));
     draw();
 }
 
@@ -14,6 +15,7 @@ void VGELine::move(QPointF displacement) {
     _firstPoint.ry() += displacement.y();
     _lastPoint.rx() += displacement.x();
     _lastPoint.ry() += displacement.y();
+    clipMove(displacement);
     draw();
 }
 
@@ -25,6 +27,7 @@ void VGELine::scale(qreal coefficeint) {
     _firstPoint.ry() += (_firstPoint.y() - ymin) * (coefficeint - 1);
     _lastPoint.rx() += (_lastPoint.x() - xmin) * (coefficeint - 1);
     _lastPoint.ry() += (_lastPoint.y() - ymin) * (coefficeint - 1);
+    clipScale(coefficeint);
     draw();
 }
 
@@ -71,15 +74,41 @@ void VGELine::draw() {
 }
 
 
+void VGELine::bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) {
+    int x2 = static_cast<int>(lp.x());
+    int x1 = static_cast<int>(fp.x());
+    int y2 = static_cast<int>(lp.y());
+    int y1 = static_cast<int>(fp.y());
+    const int deltaX = abs(x2 - x1);
+    const int deltaY = abs(y2 - y1);
+    const int signX = x1 < x2 ? 1 : -1;
+    const int signY = y1 < y2 ? 1 : -1;
+    int error = deltaX - deltaY;
+    QPoint point(x2,y2);
+    if (clipContains(point)) {
+        line.append(point);
+    }
+    while(x1 != x2 || y1 != y2) {
+        point = QPoint(x1, y1);
+        if (clipContains(point)) {
+            line.append(point);
+        }
+        const int error2 = error * 2;
+        if (error2 > -deltaY) {
+            error -= deltaY;
+            x1 += signX;
+        }
+        if (error2 < deltaX) {
+            error += deltaX;
+            y1 += signY;
+        }
+    }
+}
+
+
 VGERShape& VGELine::getRaster() {
     if (!_raster) {
         draw();
     }
     return *_raster;
-}
-
-
-QString VGELine::str() const {
-    std::string str = "LINE" + std::to_string(_number);
-    return QString(str.c_str());
 }

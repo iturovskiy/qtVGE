@@ -10,6 +10,7 @@ VGEHypocycloid::VGEHypocycloid(QObject *parent, QColor color, QPointF center,
                                                                    _radiusOut(radiusOut),
                                                                    _radiusInn(radiusInn)
 {
+    _name = QString::fromStdString(std::string("hypo") + std::to_string(count++));
     draw();
 }
 
@@ -17,6 +18,7 @@ VGEHypocycloid::VGEHypocycloid(QObject *parent, QColor color, QPointF center,
 void VGEHypocycloid::move(QPointF displacement) {
     _center.rx() += displacement.x();
     _center.ry() += displacement.y();
+    clipMove(displacement);
     draw();
 }
 
@@ -28,6 +30,7 @@ void VGEHypocycloid::scale(qreal coefficeint) {
     _center.ry() += (_center.y() - ymin) * (coefficeint - 1);
     _radiusOut *= coefficeint;
     _radiusInn *= coefficeint;
+    clipScale(coefficeint);
     draw();
 }
 
@@ -93,13 +96,13 @@ void VGEHypocycloid::draw() {
     _shapePoints->clear();
 
     if (_pressCount >= 2) {
-        hypocycloidPoints(_center, _radiusOut, _radiusInn, *_shapePoints);
+        hypocycloidPoints(*_shapePoints);
     }
     else {
-        bresenhamCirclePoints(_center, _radiusOut, *_shapePoints, false);
+        bresenhamCirclePoints(_center, _radiusOut, *_shapePoints);
         if (_pressCount == 1) {
             QPoint point(static_cast<int>(_center.x()), static_cast<int>((_center.y() - _radiusOut) + _radiusInn));
-            bresenhamCirclePoints(point, _radiusInn, *_shapePoints, false);
+            bresenhamCirclePoints(point, _radiusInn, *_shapePoints);
         }
     }
 
@@ -109,16 +112,40 @@ void VGEHypocycloid::draw() {
     _raster = new VGERShape(_shapePoints, drawColor);
 }
 
+void VGEHypocycloid::hypocycloidPoints(QVector<QPoint> &hypo) {
+    const int x0 = static_cast<int>(_center.x());
+    const int y0 = static_cast<int>(_center.y());
+    const double k = _radiusOut / _radiusInn;
+    const double a = _radiusInn * (k - 1);
+    int nod = NOD(_radiusOut, _radiusInn);
+    double loop = _radiusInn / nod;
+    double x, y;
+    QPoint point;
+    for (double f = 0; f < 2 * M_PI * loop; f += 0.001) {
+        x = (a * (cos(f) + cos((k - 1.0) * f) / (k - 1.0)));
+        y = (a * (sin(f) - sin((k - 1.0) * f) / (k - 1.0)));
+        point = QPoint(x0 + x, y0 + y);
+        if (clipContains(point)) {
+            hypo.append(point);
+        }
+    }
+}
+
+
+int VGEHypocycloid::NOD(int a, int b) {
+    while (a != b) {
+        if (a > b)
+            a -= b;
+        else
+            b -= a;
+    }
+    return a;
+}
+
 
 VGERShape& VGEHypocycloid::getRaster() {
     if (!_raster) {
         draw();
     }
     return *_raster;
-}
-
-
-QString VGEHypocycloid::str() const {
-    std::string str = "HYPO" + std::to_string(_number);
-    return QString(str.c_str());
 }

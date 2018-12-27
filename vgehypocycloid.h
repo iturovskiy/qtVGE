@@ -10,18 +10,18 @@ class VGEHypocycloid : public VGEShape {
 public:
     explicit VGEHypocycloid(QObject *parent = nullptr,
                             QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                            VGEShape(parent, color) {}
+                            VGEShape(parent, color)
+    {_name = QString::fromStdString(std::string("hypo") + std::to_string(count++));}
 
     explicit VGEHypocycloid(QObject *parent, QColor color,
                             QPointF center, qreal radiusOut, qreal radiusInn);
 
     void move(QPointF displacement) override;
-    void scale(qreal coefficeint) override; //todo
+    void scale(qreal coefficeint) override;
     void handleMousePressEvent(QMouseEvent *event) override;
     void handleMouseMoveEvent(QMouseEvent *event) override;
     void handleMouseReleaseEvent(QMouseEvent *event) override;
     VGERShape& getRaster() override;
-    QString str() const override; // redo
 
     inline QPointF getCenter() const
     { return _center; }
@@ -42,6 +42,11 @@ public:
     { _radiusInn = radius; draw(); }
 
     void draw() override;
+
+
+private:
+    void hypocycloidPoints(QVector<QPoint> &hypo);
+    int NOD(int a, int b);
 
 
 private:

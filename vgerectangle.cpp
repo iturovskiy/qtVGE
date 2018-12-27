@@ -5,6 +5,7 @@
 
 VGERectangle::VGERectangle(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint) :
 VGEShape(parent, color), _firstPoint(firstPoint), _lastPoint(lastPoint) {
+    _name = QString::fromStdString(std::string("rectangle") + std::to_string(count++));
     draw();
 }
 
@@ -14,6 +15,7 @@ void VGERectangle::move(QPointF displacement) {
     _firstPoint.ry() += displacement.y();
     _lastPoint.rx() += displacement.x();
     _lastPoint.ry() += displacement.y();
+    clipMove(displacement);
     draw();
 }
 
@@ -25,6 +27,7 @@ void VGERectangle::scale(qreal coefficeint) {
     _firstPoint.ry() += (_firstPoint.y() - ymin) * (coefficeint - 1);
     _lastPoint.rx() += (_lastPoint.x() - xmin) * (coefficeint - 1);
     _lastPoint.ry() += (_lastPoint.y() - ymin) * (coefficeint - 1);
+    clipScale(coefficeint);
     draw();
 }
 
@@ -69,7 +72,7 @@ void VGERectangle::draw() {
             while (abs(_firstPoint.y() + i) <= abs(_lastPoint.y())) {
                 QPointF p1(_firstPoint.x(), _firstPoint.y() + i);
                 QPointF p2(_lastPoint.x(), _firstPoint.y() + i);
-                bresenhamLinePoints(p1, p2, *_shapePoints);
+                bresenhamLine(p1, p2, *_shapePoints, _clipped, _cutFP, _cutLP);
                 i++;
             }
         }
@@ -77,16 +80,16 @@ void VGERectangle::draw() {
             while (abs(_firstPoint.y() - i) >= abs(_lastPoint.y())) {
                 QPointF p1(_firstPoint.x(), _firstPoint.y() - i);
                 QPointF p2(_lastPoint.x(), _firstPoint.y() - i);
-                bresenhamLinePoints(p1, p2, *_shapePoints);
+                bresenhamLine(p1, p2, *_shapePoints, _clipped, _cutFP, _cutLP);
                 i++;
             }
         }
     }
     else {
-        bresenhamLinePoints(_firstPoint, QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
-        bresenhamLinePoints(_firstPoint, QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
-        bresenhamLinePoints(_lastPoint,  QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
-        bresenhamLinePoints(_lastPoint,  QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
+        bresenhamLine(_firstPoint, QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
+        bresenhamLine(_firstPoint, QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
+        bresenhamLine(_lastPoint,  QPoint(static_cast<int>(_firstPoint.x()), static_cast<int>(_lastPoint.y())), *_shapePoints);
+        bresenhamLine(_lastPoint,  QPoint(static_cast<int>(_lastPoint.x()), static_cast<int>(_firstPoint.y())), *_shapePoints);
     }
 
 
@@ -102,16 +105,4 @@ VGERShape& VGERectangle::getRaster() {
         draw();
     }
     return *_raster;
-}
-
-
-QString VGERectangle::str() const {
-    std::string str = "RECT" + std::to_string(_number);
-    return QString(str.c_str());
-}
-
-/// todo
-QList<VGEShape *> VGERectangle::clip() {
-    QList<VGEShape *> s;
-    return s;
 }

@@ -9,6 +9,7 @@
 #include "vgerectangle.h"
 #include "vgecircle.h"
 #include "vgehypocycloid.h"
+#include "vgegroup.h"
 #include "vgeshapesetup.h"
 
 
@@ -30,18 +31,22 @@ protected:
 private:
     void unSelect();
     void updateImage();
-    void searchPixel(QPoint);
+    void searchPixel(QPoint); //
 
 
 public slots:
+    void deleteShape(VGEShape *);
+    void selectShape(VGEShape *);
+
     void setEditorMode(vge::editorMode mode);
-    void receiveParams(QColor color, qreal coef,
+    void receiveParams(QString name, QColor color, qreal coef,
                        QPointF first, QPointF last,
                        qreal rOuter, qreal rInner);
     void acceptParamsClose();
 
 
 signals:
+    void updateTree(QList<VGEShape *>);
     void updateCoord(QPoint coord);
     void shapeSelected(bool state);
     void switchToSelection();

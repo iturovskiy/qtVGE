@@ -1,8 +1,30 @@
 #include "vgegroup.h"
+#include "vgeshape.h"
 
 
-VGEGroup::VGEGroup(QObject *parent, QColor color, QList<VGEShape *> shList, QString name = "newgroup") :
-VGEShape(parent, color), _shList(std::move(shList)), _name(name) {
+VGEGroup::VGEGroup(QObject *parent, QColor color, QList<VGEShape *> shList) :
+VGEShape(parent, color), _shList(std::move(shList)) {
+    _name = QString::fromStdString(std::string("newgroup") + std::to_string(count++));
+    draw();
+}
+
+
+void VGEGroup::clip(QPointF fp, QPointF lp) {
+    if(!_clipped) {
+        _cutFP = fp;
+        _cutLP = lp;
+        _clipped = true;
+    }
+    else {
+        _cutFP = QPointF(std::max<qreal>(std::min<qreal>(_cutFP.x(), _cutLP.x()), std::min<qreal>(fp.x(), lp.x())),
+                         std::max<qreal>(std::min<qreal>(_cutFP.y(), _cutLP.y()), std::min<qreal>(fp.y(), lp.y())));
+
+        _cutLP = QPointF(std::min<qreal>(std::max<qreal>(_cutFP.x(), _cutLP.x()), std::max<qreal>(fp.x(), lp.x())),
+                         std::min<qreal>(std::max<qreal>(_cutFP.y(), _cutLP.y()), std::max<qreal>(fp.y(), lp.y())));
+    }
+    for (auto &item : _shList) {
+        item->clip(fp, lp);
+    }
     draw();
 }
 
@@ -90,26 +112,15 @@ void VGEGroup::add(VGEShape * shape) {
 }
 
 
-bool VGEGroup::del(size_t index) {
-    size_t i = 0;
-    for (auto it = _shList.begin(); it != _shList.end(); it++, i++) {
-        if (i == index) {
-            _shList.erase(it);
-            return true;
-        }
-    }
-    return false;
-}
 
-
-bool VGEGroup::del(QString name) {
+void VGEGroup::del(QString name) {
     int index = 0;
     for (auto it : _shList) {
-        if (name.compare(it->str()) == 0) {
+        if (name.compare(it->getName()) == 0) {
             _shList.removeAt(index);
-            return true;
+            break;
         }
         index++;
     }
-    return false;
+    draw();
 }

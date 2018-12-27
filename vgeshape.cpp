@@ -1,4 +1,5 @@
 #include "vgeshape.h"
+#include "vgeline.h"
 
 void VGEShape::select(bool var) {
     if (_isSelected != var) {
@@ -22,6 +23,58 @@ int VGEShape::test(QPoint point) {
 }
 
 
+bool VGEShape::clipContains(QPointF point) {
+    if (!_clipped) {
+        return true;
+    }
+    qreal maxX,maxY,minX,minY;
+    maxX = std::max<qreal>(_cutFP.x(), _cutLP.x());
+    minX = std::min<qreal>(_cutFP.x(), _cutLP.x());
+    maxY = std::max<qreal>(_cutFP.y(), _cutLP.y());
+    minY = std::min<qreal>(_cutFP.y(), _cutLP.y());
+    return point.x() >= minX && point.x() <= maxX && point.y() >= minY && point.y() <= maxY;
+}
+
+
+void VGEShape::clip(QPointF fp, QPointF lp) {
+    if(!_clipped) {
+        _cutFP = fp;
+        _cutLP = lp;
+        _clipped = true;
+    }
+    else {
+        _cutFP = QPointF(std::max<qreal>(std::min<qreal>(_cutFP.x(), _cutLP.x()), std::min<qreal>(fp.x(), lp.x())),
+                         std::max<qreal>(std::min<qreal>(_cutFP.y(), _cutLP.y()), std::min<qreal>(fp.y(), lp.y())));
+
+        _cutLP = QPointF(std::min<qreal>(std::max<qreal>(_cutFP.x(), _cutLP.x()), std::max<qreal>(fp.x(), lp.x())),
+                         std::min<qreal>(std::max<qreal>(_cutFP.y(), _cutLP.y()), std::max<qreal>(fp.y(), lp.y())));
+    }
+    draw();
+}
+
+
+void VGEShape::clipMove(QPointF displacement) {
+    if(_clipped) {
+        _cutFP.rx() += displacement.x();
+        _cutFP.ry() += displacement.y();
+        _cutLP.rx() += displacement.x();
+        _cutLP.ry() += displacement.y();
+    }
+}
+
+
+void VGEShape::clipScale(qreal coefficeint) {
+    if (_clipped) {
+        auto xmin = std::min<qreal>(_cutFP.x(), _cutLP.x());
+        auto ymin = std::min<qreal>(_cutFP.y(), _cutLP.y());
+        _cutFP.rx() += (_cutFP.x() - xmin) * (coefficeint - 1);
+        _cutFP.ry() += (_cutFP.y() - ymin) * (coefficeint - 1);
+        _cutLP.rx() += (_cutLP.x() - xmin) * (coefficeint - 1);
+        _cutLP.ry() += (_cutLP.y() - ymin) * (coefficeint - 1);
+    }
+}
+
+
 VGERShape::VGERShape(QVector<QPoint> *points, QColor color) :
 _points(points), _pen(color) {
     _pen.setWidth(vge::DEFAULT_W);
@@ -41,7 +94,22 @@ void VGERShape::operator()(QImage *image) const {
 
 /// bresenham
 
-void bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) {
+bool clipContains(QPointF point, bool clipped, QPointF cutFP, QPointF cutLP) {
+    if (!clipped) {
+        return true;
+    }
+    qreal maxX,maxY,minX,minY;
+    maxX = std::max<qreal>(cutFP.x(), cutLP.x());
+    minX = std::min<qreal>(cutFP.x(), cutLP.x());
+    maxY = std::max<qreal>(cutFP.y(), cutLP.y());
+    minY = std::min<qreal>(cutFP.y(), cutLP.y());
+    return point.x() >= minX && point.x() <= maxX && point.y() >= minY && point.y() <= maxY;
+}
+
+
+void bresenhamLine(const QPointF &fp, const QPointF &lp,
+                   QVector<QPoint> &line,
+                   bool clipped, QPointF cutFP, QPointF cutLP) {
 
     int x2 = static_cast<int>(lp.x());
     int x1 = static_cast<int>(fp.x());
@@ -52,10 +120,15 @@ void bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &
     const int signX = x1 < x2 ? 1 : -1;
     const int signY = y1 < y2 ? 1 : -1;
     int error = deltaX - deltaY;
-
-    line.append(QPoint(x2, y2));
+    QPoint point(x2,y2);
+    if (clipContains(point, clipped, cutFP, cutLP)) {
+        line.append(point);
+    }
     while(x1 != x2 || y1 != y2) {
-        line.append(QPoint(x1, y1));
+        point = QPoint(x1, y1);
+        if (clipContains(point, clipped, cutFP, cutLP)) {
+            line.append(point);
+        }
         const int error2 = error * 2;
         if (error2 > -deltaY) {
             error -= deltaY;
@@ -69,7 +142,7 @@ void bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &
 }
 
 
-void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &circle, bool filled) {
+void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &circle) {
     const int x0 = static_cast<int>(center.x());
     const int y0 = static_cast<int>(center.y());
     int x = 0;
@@ -77,17 +150,10 @@ void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> 
     int delta = static_cast<int>(1 - 2 * radius);
     int error = 0;
     while(y >= 0) {
-
-        if (filled) {
-            bresenhamLinePoints(QPoint(x0 - x, y0 + y), QPoint(x0 + x, y0 + y), circle);
-            bresenhamLinePoints(QPoint(x0 - x, y0 - y), QPoint(x0 + x, y0 - y), circle);
-        }
-        else {
-            circle.append(QPoint(x0 - x, y0 + y));
-            circle.append(QPoint(x0 + x, y0 + y));
-            circle.append(QPoint(x0 - x, y0 - y));
-            circle.append(QPoint(x0 + x, y0 - y));
-        }
+        circle.append(QPoint(x0 - x, y0 + y));
+        circle.append(QPoint(x0 + x, y0 + y));
+        circle.append(QPoint(x0 - x, y0 - y));
+        circle.append(QPoint(x0 + x, y0 - y));
 
         error = 2 * (delta + y) - 1;
         if (delta < 0 && error <= 0) {
@@ -105,32 +171,4 @@ void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> 
         delta += 2 * (x - y);
         --y;
     }
-}
-
-
-void hypocycloidPoints(const QPointF &center, qreal radiusOut, qreal radiusInn, QVector<QPoint> &hypo) {
-    const int x0 = static_cast<int>(center.x());
-    const int y0 = static_cast<int>(center.y());
-    const double k = radiusOut / radiusInn;
-    const double a = radiusInn * (k - 1);
-    int nod = NOD(radiusOut, radiusInn);
-    double loop = radiusInn / nod;
-    double x, y;
-    for (double f = 0; f < 2 * M_PI * loop; f += 0.001) {
-        x = (a * (cos(f) + cos((k - 1.0) * f) / (k - 1.0)));
-        y = (a * (sin(f) - sin((k - 1.0) * f) / (k - 1.0)));
-        hypo.append(QPoint(x0 + x, y0 + y));
-    }
-    return;
-}
-
-
-int NOD (int a, int b) {
-    while (a != b) {
-        if (a > b)
-            a -= b;
-        else
-            b -= a;
-    }
-    return a;
 }
