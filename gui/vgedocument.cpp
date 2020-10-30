@@ -70,7 +70,7 @@ void VGEDocument::searchPixel(QPoint point) {
     update();
 }
 
-/// todo tangent
+
 void VGEDocument::mousePressEvent(QMouseEvent *event) {
     qDebug() << "Document - mouse PRESS; mod: " << _mode;
     if (event->button() == Qt::LeftButton){
@@ -391,7 +391,7 @@ void VGEDocument::receiveParams(QString name, QColor color, qreal coef, QPointF 
     emit updateTree(_shapeList);
 }
 
-// todo
+
 void VGEDocument::deleteShape(VGEShape *shp) {
     if (!shp) {
         return;

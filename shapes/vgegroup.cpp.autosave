@@ -96,7 +96,7 @@ void VGEGroup::draw() {
     for (auto &item : _shList) {
         shPoints.insert(shPoints.end(), item->getPoints()->begin(), item->getPoints()->end());
     }
-    *_shapePoints = QVector<QPoint>::fromStdVector(shPoints);
+    *_shapePoints = QVector<QPoint>(shPoints.begin(), shPoints.end());
 
     if (_raster) {
         delete _raster;
@@ -110,7 +110,6 @@ void VGEGroup::add(VGEShape * shape) {
         _shList.append(shape);
     }
 }
-
 
 
 void VGEGroup::del(QString name) {

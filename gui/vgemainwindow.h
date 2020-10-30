@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "vgedocument.h"
-#include "configs.h"
+#include "../configs.h"
 #include "treewidget.h"
 
 #include <QList>

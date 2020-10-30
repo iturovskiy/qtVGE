@@ -11,8 +11,8 @@ class VGEGroup : public VGEShape {
 
 public:
     explicit VGEGroup(QObject *parent = nullptr,
-                     QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                     VGEShape(parent, color) {}
+                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
+                      VGEShape(parent, color) {}
 
     explicit VGEGroup(QObject *parent, QColor color,
                       QList<VGEShape *> shList);

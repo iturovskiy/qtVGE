@@ -46,7 +46,6 @@ void VGEHypocycloid::handleMousePressEvent(QMouseEvent * event) {
 
 
 void VGEHypocycloid::handleMouseMoveEvent(QMouseEvent * event) {
-    // what here is?
     QPointF pos;
     pos = event->pos();
     if (_pressCount == 0) {

@@ -4,12 +4,12 @@
 #include <QWidget>
 #include <QTreeWidgetItem>
 
-#include "vgeshape.h"
-#include "vgeline.h"
-#include "vgerectangle.h"
-#include "vgecircle.h"
-#include "vgehypocycloid.h"
-#include "vgegroup.h"
+#include "../shapes/vgeshape.h"
+#include "../shapes/vgeline.h"
+#include "../shapes/vgerectangle.h"
+#include "../shapes/vgecircle.h"
+#include "../shapes/vgehypocycloid.h"
+#include "../shapes/vgegroup.h"
 
 
 namespace Ui {

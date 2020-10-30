@@ -69,7 +69,7 @@ QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, QPointF po
     int ix1 = static_cast<int>(round(x2));
     int iy0 = static_cast<int>(round(y1));
     int iy1 = static_cast<int>(round(y2));
-    return qMakePair(QPoint(ix0, iy0), QPoint(ix1, iy1));
+    return qMakePair(QPoint(ix0, iy0), QPoint(ix1, iy1)); // { ..., ... }
 }
 
 
@@ -96,7 +96,6 @@ void VGECircle::scale(qreal coefficeint) {
     _radius *= coefficeint;
     clipScale(coefficeint);
     draw();
-
 }
 
 

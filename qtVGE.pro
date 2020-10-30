@@ -13,30 +13,30 @@ QMAKE_CXXFLAGS += -std=gnu++17
 
 
 SOURCES += \
-        main.cpp \
-    vgeline.cpp \
-    vgemainwindow.cpp \
-    vgedocument.cpp \
-    vgerectangle.cpp \
-    vgehypocycloid.cpp \
-    vgecircle.cpp \
-    vgegroup.cpp \
-    vgeshapesetup.cpp \
-    vgeshape.cpp \
-    treewidget.cpp
+    main.cpp \
+    shapes/vgeshape.cpp \
+    shapes/vgeline.cpp \
+    shapes/vgerectangle.cpp \
+    shapes/vgehypocycloid.cpp \
+    shapes/vgecircle.cpp \
+    shapes/vgegroup.cpp \
+    gui/vgemainwindow.cpp \
+    gui/vgedocument.cpp \
+    gui/vgeshapesetup.cpp \
+    gui/treewidget.cpp 
 
 HEADERS += \
     configs.h \
-    vgeline.h \
-    vgemainwindow.h \
-    vgedocument.h \
-    vgerectangle.h \
-    vgehypocycloid.h \
-    vgecircle.h \
-    vgegroup.h \
-    vgeshapesetup.h \
-    vgeshape.h \
-    treewidget.h
+    shapes/vgeshape.h \
+    shapes/vgeline.h \
+    shapes/vgerectangle.h \
+    shapes/vgehypocycloid.h \
+    shapes/vgecircle.h \
+    shapes/vgegroup.h \
+    gui/vgemainwindow.h \
+    gui/vgedocument.h \
+    gui/vgeshapesetup.h \
+    gui/treewidget.h 
 
 FORMS += \
-    widget.ui
+    gui/widget.ui

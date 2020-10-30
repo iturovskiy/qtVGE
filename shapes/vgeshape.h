@@ -92,7 +92,6 @@ public:
     { _name = name; }
 
 
-
 protected:
     QColor _color;
     QPointF _cutFP, _cutLP;
@@ -103,12 +102,6 @@ protected:
     bool _isSelected = false;
     quint32 _number;
     QString _name;
-
-
-signals:
-
-public slots:
-
 };
 
 

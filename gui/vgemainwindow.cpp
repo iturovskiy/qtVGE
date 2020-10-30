@@ -23,8 +23,8 @@ void VGEAction::enable(bool state) {
 
 QString msgLabelText(const QString& str) {
     QString labelText = "<P><b><i><FONT COLOR='#ff0000' FONT SIZE = 4>";
-    labelText .append(str);
-    labelText .append("</i></b></P></br>");
+    labelText.append(str);
+    labelText.append("</i></b></P></br>");
     return labelText;
 }
 
@@ -78,8 +78,8 @@ VGEMainWindow::VGEMainWindow(QWidget *parent)
 
 
 void VGEMainWindow::coordUpdate(QPoint coord) {
-    _coordXLabel->setText(QString().sprintf("%s: %4d", "X", coord.x()));
-    _coordYLabel->setText(QString().sprintf("%s: %4d", "Y", coord.y()));
+    _coordXLabel->setText(QString().asprintf("%s: %4d", "X", coord.x()));
+    _coordYLabel->setText(QString().asprintf("%s: %4d", "Y", coord.y()));
 }
 
 
@@ -172,7 +172,7 @@ void VGEMainWindow::openNewWindow(QWidget *wgt)
 void VGEMainWindow::keyPressEvent(QKeyEvent *event)
 {
     qDebug() << event;
-    if (event->key() == Qt::Key_Escape){
+    if (event->key() == Qt::Key_Escape) {
         event->accept();
         resetToSelection();
     } else {

@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QtWidgets>
 
-#include "vgeshape.h"
+#include "../shapes/vgeshape.h"
 
 
 class ColorGridWidget;
@@ -127,10 +127,10 @@ private:
     QLabel* _coefficientLabel = new QLabel(this);
     QDoubleSpinBox* _coefficientSpinBox = new QDoubleSpinBox(this);
 
-    QLabel* _firstCoordXLabel = nullptr; // new QLabel(this);
-    QDoubleSpinBox* _firstCoordXSpinBox = nullptr; //new QDoubleSpinBox(this);
-    QLabel* _firstCoordYLabel  = nullptr; // new QLabel(this);
-    QDoubleSpinBox* _firstCoordYSpinBox = nullptr; // new QDoubleSpinBox(this);
+    QLabel* _firstCoordXLabel = nullptr;
+    QDoubleSpinBox* _firstCoordXSpinBox = nullptr;
+    QLabel* _firstCoordYLabel  = nullptr;
+    QDoubleSpinBox* _firstCoordYSpinBox = nullptr;
 
 
     QLabel* _lastCoordXLabel  = nullptr;

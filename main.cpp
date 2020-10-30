@@ -1,4 +1,4 @@
-#include "vgemainwindow.h"
+#include "gui/vgemainwindow.h"
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
@@ -8,9 +8,12 @@ int main(int argc, char *argv[]) {
         QApplication a(argc, argv);
         VGEMainWindow w;
         w.show();
-        return a.exec();
+        int retCode = a.exec();
+        qDebug() << "Exit";
+        return retCode;
 
-    } catch (std::exception e){
-        return 123;
+    } catch (std::exception &e){
+        qDebug() << e.what();
+        return 1;
     }
 }

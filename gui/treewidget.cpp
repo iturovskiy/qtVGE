@@ -4,7 +4,6 @@
 
 TreeWidget::TreeWidget(QWidget *parent) :  QWidget(parent), ui(new Ui::Widget) {
      ui->setupUi(this);
-     //ниже наша часть конструктора
      count = 0;
      ui->treeWidget->setColumnCount(1);
      QStringList headers;
@@ -15,32 +14,22 @@ TreeWidget::TreeWidget(QWidget *parent) :  QWidget(parent), ui(new Ui::Widget) {
 }
 
 
-TreeWidget::~TreeWidget() { delete ui; }
+TreeWidget::~TreeWidget() {
+    delete ui;
+}
 
 
 int TreeWidget::treeCount(QTreeWidget *tree, QTreeWidgetItem *parent = nullptr) {
-    tree->expandAll(); //а это "костыль"
+    tree->expandAll();
     int count = 0;
-    if (parent == 0) {
-        int topCount = tree->topLevelItemCount();
-        for (int i = 0; i < topCount; i++) {
-            QTreeWidgetItem *item = tree->topLevelItem(i);
-            if (item->isExpanded()) {
-                count += treeCount(tree, item);
-            }
+    int childCount = parent ?  parent->childCount() : tree->topLevelItemCount();
+    for (int i = 0; i < childCount; i++) {
+        auto item = parent ? parent->child(i) : tree->topLevelItem(i);
+        if (item->isExpanded()) {
+            count += treeCount(tree, item);
         }
-        count += topCount;
     }
-    else {
-        int childCount = parent->childCount();
-        for (int i = 0; i < childCount; i++) {
-            QTreeWidgetItem *item = parent->child(i);
-            if (item->isExpanded()) {
-                count += treeCount(tree, item);
-            }
-        }
-        count += childCount;
-    }
+    count += childCount;
     return count;
 }
 
