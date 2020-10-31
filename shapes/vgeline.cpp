@@ -3,14 +3,18 @@
 #include <QtMath>
 
 
-VGELine::VGELine(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint) :
-VGEShape(parent, color), _firstPoint(firstPoint), _lastPoint(lastPoint) {
-    _name = QString::fromStdString(std::string("line") + std::to_string(count++));
+VGELine::VGELine(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint)
+    : VGEShape(parent, std::move(color)),
+      _firstPoint(std::move(firstPoint)),
+      _lastPoint(std::move(lastPoint))
+{
+    _name = QString::fromStdString(std::string("line") + std::to_string(_number));
     draw();
 }
 
 
-void VGELine::move(QPointF displacement) {
+void VGELine::move(const QPointF &displacement)
+{
     _firstPoint.rx() += displacement.x();
     _firstPoint.ry() += displacement.y();
     _lastPoint.rx() += displacement.x();
@@ -20,7 +24,8 @@ void VGELine::move(QPointF displacement) {
 }
 
 
-void VGELine::scale(qreal coefficeint) {
+void VGELine::scale(qreal coefficeint)
+{
     auto xmin = std::min<qreal>(_firstPoint.x(), _lastPoint.x());
     auto ymin = std::min<qreal>(_firstPoint.y(), _lastPoint.y());
     _firstPoint.rx() += (_firstPoint.x() - xmin) * (coefficeint - 1);
@@ -32,7 +37,8 @@ void VGELine::scale(qreal coefficeint) {
 }
 
 
-void VGELine::handleMousePressEvent(QMouseEvent * event) {
+void VGELine::handleMousePressEvent(QMouseEvent * event)
+{
     _firstPoint = event->pos();
     _lastPoint = event->pos();
     _isMousePressed = true;
@@ -40,20 +46,23 @@ void VGELine::handleMousePressEvent(QMouseEvent * event) {
 }
 
 
-void VGELine::handleMouseMoveEvent(QMouseEvent * event) {
+void VGELine::handleMouseMoveEvent(QMouseEvent * event)
+{
     _lastPoint = event->pos();
     draw();
 }
 
 
-void VGELine::handleMouseReleaseEvent(QMouseEvent * event) {
+void VGELine::handleMouseReleaseEvent(QMouseEvent * event)
+{
     _lastPoint = event->pos();
     _isMousePressed = false;
     draw();
 }
 
 
-void VGELine::draw() {
+void VGELine::draw()
+{
     QColor drawColor;
     if (_isSelected){
         drawColor = QColor(0xFF - _color.red(), 0xFF - _color.green(), 0xFF - _color.blue(), 0xFF);
@@ -74,7 +83,8 @@ void VGELine::draw() {
 }
 
 
-void VGELine::bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line) {
+void VGELine::bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<QPoint> &line)
+{
     int x2 = static_cast<int>(lp.x());
     int x1 = static_cast<int>(fp.x());
     int y2 = static_cast<int>(lp.y());
@@ -106,7 +116,8 @@ void VGELine::bresenhamLinePoints(const QPointF &fp, const QPointF &lp, QVector<
 }
 
 
-VGERShape& VGELine::getRaster() {
+VGERShape& VGELine::getRaster()
+{
     if (!_raster) {
         draw();
     }

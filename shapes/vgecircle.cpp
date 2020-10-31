@@ -3,7 +3,8 @@
 #include <QtMath>
 
 /// tangent to 2 circle
-QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, QPointF pos) {
+QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, const QPointF &pos)
+{
     auto c1 = circle1->getCenter();
     auto c2 = circle2->getCenter();
     float x1, x2, y1, y2;
@@ -59,7 +60,6 @@ QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, QPointF po
     c = -circle1->getRadius() - a * c1.x() - b * c1.y();
     d1 = abs(a * pos.x() + b * pos.y() + c) / sqrt(a * a + b * b);
     if (d0 > d1) {
-        d0 = d1;
         x1 = 0;
         y1 = static_cast<float>(-c / b);
         x2 = vge::IMAGE_W;
@@ -69,18 +69,22 @@ QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, QPointF po
     int ix1 = static_cast<int>(round(x2));
     int iy0 = static_cast<int>(round(y1));
     int iy1 = static_cast<int>(round(y2));
-    return qMakePair(QPoint(ix0, iy0), QPoint(ix1, iy1)); // { ..., ... }
+    return qMakePair(QPoint(ix0, iy0), QPoint(ix1, iy1));
 }
 
 
-VGECircle::VGECircle(QObject *parent, QColor color, QPointF center, qreal radius) :
-VGEShape(parent, color), _center(center),_radius(radius) {
-    _name = QString::fromStdString(std::string("circle") + std::to_string(count++));
+VGECircle::VGECircle(QObject *parent, QColor color, QPointF center, qreal radius)
+    : VGEShape(parent, std::move(color)),
+      _center(std::move(center)),
+      _radius(radius)
+{
+    _name = QString::fromStdString(std::string("circle") + std::to_string(_number));
     draw();
 }
 
 
-void VGECircle::move(QPointF displacement) {
+void VGECircle::move(const QPointF &displacement)
+{
     _center.rx() += displacement.x();
     _center.ry() += displacement.y();
     clipMove(displacement);
@@ -88,7 +92,8 @@ void VGECircle::move(QPointF displacement) {
 }
 
 
-void VGECircle::scale(qreal coefficeint) {
+void VGECircle::scale(qreal coefficeint)
+{
     auto xmin = _center.x() - _radius;
     auto ymin = _center.y() - _radius;
     _center.rx() += (_center.x() - xmin) * (coefficeint - 1);
@@ -99,14 +104,16 @@ void VGECircle::scale(qreal coefficeint) {
 }
 
 
-void VGECircle::handleMousePressEvent(QMouseEvent * event) {
+void VGECircle::handleMousePressEvent(QMouseEvent * event)
+{
     _center = event->pos();
     _isMousePressed = true;
     draw();
 }
 
 
-void VGECircle::handleMouseMoveEvent(QMouseEvent * event) {
+void VGECircle::handleMouseMoveEvent(QMouseEvent * event)
+{
     QPointF pos;
     pos = event->pos();
     _radius = sqrt((pos.x() - _center.x()) * (pos.x() - _center.x())
@@ -115,7 +122,8 @@ void VGECircle::handleMouseMoveEvent(QMouseEvent * event) {
 }
 
 
-void VGECircle::handleMouseReleaseEvent(QMouseEvent * event) {
+void VGECircle::handleMouseReleaseEvent(QMouseEvent * event)
+{
     QPointF pos;
     pos = event->pos();
     _radius = sqrt((pos.x() - _center.x()) * (pos.x() - _center.x())
@@ -125,7 +133,8 @@ void VGECircle::handleMouseReleaseEvent(QMouseEvent * event) {
 }
 
 
-void VGECircle::draw() {
+void VGECircle::draw()
+{
     QColor drawColor;
     if (_isSelected){
         drawColor = QColor(0xFF - _color.red(), 0xFF - _color.green(), 0xFF - _color.blue(), 0xFF);
@@ -145,7 +154,8 @@ void VGECircle::draw() {
     _raster = new VGERShape(_shapePoints, drawColor);
 }
 
-void VGECircle::bresenhamCircle(QVector<QPoint> &circle) {
+void VGECircle::bresenhamCircle(QVector<QPoint> &circle)
+{
     const int x0 = static_cast<int>(_center.x());
     const int y0 = static_cast<int>(_center.y());
     int x = 0;
@@ -174,7 +184,8 @@ void VGECircle::bresenhamCircle(QVector<QPoint> &circle) {
 }
 
 
-VGERShape& VGECircle::getRaster() {
+VGERShape& VGECircle::getRaster()
+{
     if (!_raster) {
         draw();
     }

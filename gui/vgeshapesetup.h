@@ -65,21 +65,21 @@ public:
                   vge::shapeType type,
                   QColor color,
                   QString name,
-                  QPointF first,
-                  QPointF last);
+                  const QPointF &first,
+                  const QPointF &last);
 
     VGEShapeSetUp(QWidget *parent,
                   vge::shapeType type,
                   QColor color,
                   QString name,
-                  QPointF center,
+                  const QPointF &center,
                   qreal radius);
 
     VGEShapeSetUp(QWidget *parent,
                   vge::shapeType type,
                   QColor color,
                   QString name,
-                  QPointF center,
+                  const QPointF &center,
                   qreal oradius,
                   qreal iradius);
 
@@ -98,7 +98,7 @@ protected:
 
 
 private:
-    void init(QPointF point);
+    void init(const QPointF &point);
 
 
 signals:
@@ -149,7 +149,7 @@ private:
     QColor _color;
     QColor _newColor;
     ColorButton *_colorButton;
-    bool _colorConsistency = true; // hz
+    bool _colorConsistency = true;
     QList<ColorButton *> _colorGridButtons;
     ColorGridWidget* _colorSelectionWidget = new ColorGridWidget(this);
     QPushButton* _colorConfirmButton = new QPushButton(this);

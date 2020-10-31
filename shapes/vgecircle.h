@@ -7,22 +7,20 @@
 
 class VGECircle;
 
-QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, QPointF point);
+QPair<QPoint, QPoint> tangent(VGECircle *circle1, VGECircle *circle2, const QPointF &point);
 
 
 class VGECircle : public VGEShape {
     Q_OBJECT
 
 public:
-    explicit VGECircle(QObject *parent = nullptr,
-                     QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                     VGEShape(parent, color)
-    { _name = QString::fromStdString(std::string("circle") + std::to_string(count++)); }
+    explicit VGECircle(QObject *parent = nullptr, QColor color = vge::SHAPE_DEFAULT_COLOR)
+        : VGEShape(parent, std::move(color))
+    { _name = QString::fromStdString(std::string("circle") + std::to_string(_number)); }
 
-    explicit VGECircle(QObject *parent, QColor color,
-                     QPointF center, qreal radius);
+    explicit VGECircle(QObject *parent, QColor color, QPointF center, qreal radius);
 
-    void move(QPointF displacement) override;
+    void move(const QPointF &displacement) override;
     void scale(qreal coefficeint) override;
     void handleMousePressEvent(QMouseEvent *event) override;
     void handleMouseMoveEvent(QMouseEvent *event) override;
@@ -35,10 +33,10 @@ public:
     inline qreal getRadius() const
     { return _radius; }
 
-    void setCenter(const QPointF &point)
-    { _center = point; draw(); }
+    void setCenter(QPointF point)
+    { _center = std::move(point); draw(); }
 
-    void setRadius(const qreal &radius)
+    void setRadius(qreal radius)
     { _radius = radius; draw(); }
 
     void draw() override;

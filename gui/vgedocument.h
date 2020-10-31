@@ -31,12 +31,12 @@ protected:
 private:
     void unSelect();
     void updateImage();
-    void searchPixel(QPoint); //
+    void searchPixel(const QPoint &point);
 
 
 public slots:
-    void deleteShape(VGEShape *);
-    void selectShape(VGEShape *);
+    void deleteShape(VGEShape *shp);
+    void selectShape(VGEShape *shp);
 
     void setEditorMode(vge::editorMode mode);
     void receiveParams(QString name, QColor color, qreal coef,

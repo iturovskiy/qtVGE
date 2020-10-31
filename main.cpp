@@ -1,19 +1,20 @@
 #include "gui/vgemainwindow.h"
 #include <QApplication>
 
-int main(int argc, char *argv[]) {
-    try {
 
+int main(int argc, char *argv[])
+{
+    int retCode = 1;
+    try {
         QApplication::setDesktopSettingsAware(true);
         QApplication a(argc, argv);
         VGEMainWindow w;
         w.show();
-        int retCode = a.exec();
+        retCode = a.exec();
         qDebug() << "Exit";
-        return retCode;
 
     } catch (std::exception &e){
         qDebug() << e.what();
-        return 1;
     }
+    return retCode;
 }

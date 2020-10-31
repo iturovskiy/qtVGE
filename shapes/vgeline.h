@@ -11,15 +11,13 @@ class VGELine : public VGEShape {
     Q_OBJECT
 
 public:
-    explicit VGELine(QObject *parent = nullptr,
-                     QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                     VGEShape(parent, color)
-    {_name = QString::fromStdString(std::string("line") + std::to_string(count++));}
+    explicit VGELine(QObject *parent = nullptr, QColor color = vge::SHAPE_DEFAULT_COLOR)
+        : VGEShape(parent, std::move(color))
+    {_name = QString::fromStdString(std::string("line") + std::to_string(_number));}
 
-    explicit VGELine(QObject *parent, QColor color,
-                     QPointF firstPoint, QPointF lastPoint);
+    explicit VGELine(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint);
 
-    void move(QPointF displacement) override;
+    void move(const QPointF &displacement) override;
     void scale(qreal coefficeint) override;
     void handleMousePressEvent(QMouseEvent *event) override;
     void handleMouseMoveEvent(QMouseEvent *event) override;
@@ -32,11 +30,11 @@ public:
     inline QPointF getSP() const
     { return _lastPoint; }
 
-    void setFP(const QPointF &point)
-    { _firstPoint = point; draw(); }
+    void setFP(QPointF point)
+    { _firstPoint = std::move(point); draw(); }
 
-    void setLP(const QPointF &point)
-    { _lastPoint = point; draw(); }
+    void setLP(QPointF point)
+    { _lastPoint = std::move(point); draw(); }
 
     void draw() override;
 

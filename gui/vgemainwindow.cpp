@@ -1,27 +1,30 @@
 #include "vgemainwindow.h"
 
 // Action
-VGEAction::VGEAction(const QIcon& icon, const QString& label, const vge::editorMode mode, QObject* parent):
-    QAction(icon, label, parent),
-    _mode(mode)
+VGEAction::VGEAction(const QIcon& icon, const QString& label, const vge::editorMode mode, QObject* parent)
+    : QAction(icon, label, parent),
+      _mode(mode)
 {
     connect(this, &QAction::toggled, this, &VGEAction::slotToggled);
 }
 
 
-void VGEAction::slotToggled(bool state) {
+void VGEAction::slotToggled(bool state)
+{
     if (state) {
         emit toggled(_mode);
     }
 }
 
 
-void VGEAction::enable(bool state) {
+void VGEAction::enable(bool state)
+{
     QAction::setEnabled(state);
 }
 
 
-QString msgLabelText(const QString& str) {
+QString msgLabelText(const QString& str)
+{
     QString labelText = "<P><b><i><FONT COLOR='#ff0000' FONT SIZE = 4>";
     labelText.append(str);
     labelText.append("</i></b></P></br>");
@@ -77,13 +80,15 @@ VGEMainWindow::VGEMainWindow(QWidget *parent)
 }
 
 
-void VGEMainWindow::coordUpdate(QPoint coord) {
+void VGEMainWindow::coordUpdate(const QPoint &coord)
+{
     _coordXLabel->setText(QString().asprintf("%s: %4d", "X", coord.x()));
     _coordYLabel->setText(QString().asprintf("%s: %4d", "Y", coord.y()));
 }
 
 
-void VGEMainWindow::initToolsList() {
+void VGEMainWindow::initToolsList()
+{
     _toolList.append(ToolPair(vge::DrawLine, "Line"));
     _toolList.append(ToolPair(vge::DrawRectangle, "Rectangle"));
     _toolList.append(ToolPair(vge::DrawCircle, "Circle"));
@@ -101,9 +106,10 @@ void VGEMainWindow::initToolsList() {
 }
 
 
-void VGEMainWindow::initToolbar(QToolBar * toolBar, QList<ToolPair> elements, Qt::ToolBarArea area) {
+void VGEMainWindow::initToolbar(QToolBar *toolBar, const QList<ToolPair> &elements, Qt::ToolBarArea area)
+{
     int counter = 0;
-    for (ToolPair mode : elements){
+    for (const auto & mode : elements){
         VGEAction* act = new VGEAction(QPixmap(":/" + mode.second + ".svg"), mode.second, mode.first);
         act->setCheckable(true);
         _toolActionGroup->addAction(act);
@@ -128,13 +134,14 @@ void VGEMainWindow::initToolbar(QToolBar * toolBar, QList<ToolPair> elements, Qt
     toolBar->setFloatable(false);
     toolBar->setMovable(false);
     toolBar->addWidget(_widget);
-    addToolBar(area, _leftToolBar);
+    addToolBar(std::move(area), _leftToolBar);
 }
 
 
-void VGEMainWindow::modeUpdate(vge::editorMode mode) {
+void VGEMainWindow::modeUpdate(vge::editorMode mode)
+{
     QString name("None");
-    for (ToolPair pair : _toolList){
+    for (const auto &pair : _toolList){
         if (pair.first == mode){
             name = pair.second;
         }
@@ -143,7 +150,8 @@ void VGEMainWindow::modeUpdate(vge::editorMode mode) {
 }
 
 
-void VGEMainWindow::resetToSelection(){
+void VGEMainWindow::resetToSelection()
+{
     if (_selectAction){
         _selectAction->setChecked(true);
     }
@@ -157,7 +165,7 @@ void VGEMainWindow::putMessage(QString text, bool isError)
     } else {
         _messageLabel->setStyleSheet("font-weight: regular; color: light gray");
     }
-    _messageLabel->setText(text);
+    _messageLabel->setText(std::move(text));
     qDebug() << text << " " << isError;
 }
 

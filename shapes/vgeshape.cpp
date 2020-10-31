@@ -1,7 +1,12 @@
 #include "vgeshape.h"
 #include "vgeline.h"
 
-void VGEShape::select(bool var) {
+
+quint32 VGEShape::_number = 0;
+
+
+void VGEShape::select(bool var)
+{
     if (_isSelected != var) {
         _isSelected = var;
         draw();
@@ -9,7 +14,8 @@ void VGEShape::select(bool var) {
 }
 
 
-int VGEShape::test(QPoint point) {
+int VGEShape::test(const QPoint &point)
+{
     int min = 2 * vge::SEARCH_W * vge::SEARCH_W;
     for (QPoint shapePoint : *_shapePoints){
         int distX = abs(shapePoint.x() - point.x());
@@ -23,7 +29,8 @@ int VGEShape::test(QPoint point) {
 }
 
 
-bool VGEShape::clipContains(QPointF point) {
+bool VGEShape::clipContains(const QPointF &point)
+{
     if (!_clipped) {
         return true;
     }
@@ -36,7 +43,8 @@ bool VGEShape::clipContains(QPointF point) {
 }
 
 
-void VGEShape::clip(QPointF fp, QPointF lp) {
+void VGEShape::clip(const QPointF &fp, const QPointF &lp)
+{
     if(!_clipped) {
         _cutFP = fp;
         _cutLP = lp;
@@ -53,7 +61,8 @@ void VGEShape::clip(QPointF fp, QPointF lp) {
 }
 
 
-void VGEShape::clipMove(QPointF displacement) {
+void VGEShape::clipMove(const QPointF &displacement)
+{
     if(_clipped) {
         _cutFP.rx() += displacement.x();
         _cutFP.ry() += displacement.y();
@@ -63,7 +72,8 @@ void VGEShape::clipMove(QPointF displacement) {
 }
 
 
-void VGEShape::clipScale(qreal coefficeint) {
+void VGEShape::clipScale(qreal coefficeint)
+{
     if (_clipped) {
         auto xmin = std::min<qreal>(_cutFP.x(), _cutLP.x());
         auto ymin = std::min<qreal>(_cutFP.y(), _cutLP.y());
@@ -75,13 +85,16 @@ void VGEShape::clipScale(qreal coefficeint) {
 }
 
 
-VGERShape::VGERShape(QVector<QPoint> *points, QColor color) :
-_points(points), _pen(color) {
+VGERShape::VGERShape(QVector<QPoint> *points, QColor color)
+    : _points(points),
+      _pen(std::move(color))
+{
     _pen.setWidth(vge::DEFAULT_W);
 }
 
 
-void VGERShape::operator()(QImage *image) const {
+void VGERShape::operator()(QImage *image) const
+{
     if (!_points) {
         return;
     }
@@ -94,7 +107,8 @@ void VGERShape::operator()(QImage *image) const {
 
 /// bresenham
 
-bool clipContains(QPointF point, bool clipped, QPointF cutFP, QPointF cutLP) {
+bool clipContains(const QPointF &point, bool clipped, const QPointF &cutFP, const QPointF &cutLP)
+{
     if (!clipped) {
         return true;
     }
@@ -109,8 +123,8 @@ bool clipContains(QPointF point, bool clipped, QPointF cutFP, QPointF cutLP) {
 
 void bresenhamLine(const QPointF &fp, const QPointF &lp,
                    QVector<QPoint> &line,
-                   bool clipped, QPointF cutFP, QPointF cutLP) {
-
+                   bool clipped, const QPointF &cutFP, const QPointF &cutLP)
+{
     int x2 = static_cast<int>(lp.x());
     int x1 = static_cast<int>(fp.x());
     int y2 = static_cast<int>(lp.y());
@@ -142,7 +156,8 @@ void bresenhamLine(const QPointF &fp, const QPointF &lp,
 }
 
 
-void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &circle) {
+void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &circle)
+{
     const int x0 = static_cast<int>(center.x());
     const int y0 = static_cast<int>(center.y());
     int x = 0;

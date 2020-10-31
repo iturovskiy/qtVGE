@@ -1,8 +1,9 @@
 #include "vgedocument.h"
 
 
-VGEDocument::VGEDocument(QWidget *parent) :
-QWidget(parent), _image(new QImage(vge::IMAGE_W, vge::IMAGE_H, QImage::Format_ARGB32_Premultiplied))
+VGEDocument::VGEDocument(QWidget *parent)
+    : QWidget(parent),
+      _image(new QImage(vge::IMAGE_W, vge::IMAGE_H, QImage::Format_ARGB32_Premultiplied))
 {
     qDebug() << __FUNCTION__;
     _image->fill(vge::BG_DEFAULT_COLOR);
@@ -12,7 +13,8 @@ QWidget(parent), _image(new QImage(vge::IMAGE_W, vge::IMAGE_H, QImage::Format_AR
 }
 
 
-VGEDocument::~VGEDocument() {
+VGEDocument::~VGEDocument()
+{
     for (auto shape : _shapeList) {
         delete shape;
     }
@@ -25,7 +27,8 @@ VGEDocument::~VGEDocument() {
 }
 
 
-void VGEDocument::unSelect() {
+void VGEDocument::unSelect()
+{
     for (auto shape : _selectedShapeList) {
         shape->select(false);
     }
@@ -34,7 +37,8 @@ void VGEDocument::unSelect() {
 }
 
 
-void VGEDocument::updateImage() {
+void VGEDocument::updateImage()
+{
     _image->fill(vge::BG_DEFAULT_COLOR);
     for (auto shape : _shapeList) {
         shape->getRaster()(_image);
@@ -46,7 +50,8 @@ void VGEDocument::updateImage() {
 }
 
 
-void VGEDocument::searchPixel(QPoint point) {
+void VGEDocument::searchPixel(const QPoint &point)
+{
     int minDist = 2 * vge::SEARCH_W * vge::SEARCH_W;
     VGEShape * selectedShape = nullptr;
     for (auto shape : _shapeList){
@@ -71,7 +76,8 @@ void VGEDocument::searchPixel(QPoint point) {
 }
 
 
-void VGEDocument::mousePressEvent(QMouseEvent *event) {
+void VGEDocument::mousePressEvent(QMouseEvent *event)
+{
     qDebug() << "Document - mouse PRESS; mod: " << _mode;
     if (event->button() == Qt::LeftButton){
         if (_mode == vge::SelectShape) {
@@ -162,7 +168,8 @@ void VGEDocument::mousePressEvent(QMouseEvent *event) {
 }
 
 
-void VGEDocument::mouseMoveEvent(QMouseEvent *event) {
+void VGEDocument::mouseMoveEvent(QMouseEvent *event)
+{
     emit updateCoord(event->pos());
     // qDebug() << "Document - mouse MOVE; mod: " << _mode;
     if (_mode == vge::Move || _mode == vge::DrawLine || _mode == vge::DrawRectangle ||
@@ -176,7 +183,8 @@ void VGEDocument::mouseMoveEvent(QMouseEvent *event) {
 }
 
 
-void VGEDocument::mouseReleaseEvent(QMouseEvent *event) {
+void VGEDocument::mouseReleaseEvent(QMouseEvent *event)
+{
     qDebug() << "Document - mouse RELEASE; mod: " << _mode;
     if (_mode == vge::DrawLine   || _mode == vge::DrawRectangle || _mode == vge::DrawCircle) {
         if (event->button() == Qt::LeftButton){
@@ -256,7 +264,8 @@ void VGEDocument::paintEvent(QPaintEvent *event)
 }
 
 
-void VGEDocument::setEditorMode(vge::editorMode mode) {
+void VGEDocument::setEditorMode(vge::editorMode mode)
+{
     qDebug() << __FUNCTION__;
 
     _mode = mode;
@@ -329,7 +338,8 @@ void VGEDocument::setEditorMode(vge::editorMode mode) {
 }
 
 
-void VGEDocument::acceptParamsClose() {
+void VGEDocument::acceptParamsClose()
+{
     if (_setupAction) {
         _setupAction->close();
         _setupAction->deleteLater();
@@ -339,49 +349,50 @@ void VGEDocument::acceptParamsClose() {
 }
 
 
-void VGEDocument::receiveParams(QString name, QColor color, qreal coef, QPointF first, QPointF last, qreal rOuter, qreal rInner) {
+void VGEDocument::receiveParams(QString name, QColor color, qreal coef, QPointF first, QPointF last, qreal rOuter, qreal rInner)
+{
     VGEShape *shape = _selectedShapeList.last();
     shape->setColor(color);
     if (qobject_cast<VGELine *>(shape)){
-        auto *line = qobject_cast<VGELine *>(shape);
-        line->setFP(first);
-        line->setLP(last);
-        line->setName(name);
+        auto line = qobject_cast<VGELine *>(shape);
+        line->setFP(std::move(first));
+        line->setLP(std::move(last));
+        line->setName(std::move(name));
         if (coef != 100.00) {
             line->scale(coef / 100);
         }
     }
     else if (qobject_cast<VGERectangle *>(shape)){
-        auto *rect = qobject_cast<VGERectangle *>(shape);
-        rect->setFP(first);
-        rect->setLP(last);
-        rect->setName(name);
+        auto rect = qobject_cast<VGERectangle *>(shape);
+        rect->setFP(std::move(first));
+        rect->setLP(std::move(last));
+        rect->setName(std::move(name));
         if (coef != 100.00) {
             rect->scale(coef / 100);
         }
     }
     else if (qobject_cast<VGECircle *>(shape)){
-        auto *circle = qobject_cast<VGECircle *>(shape);
-        circle->setCenter(first);
+        auto circle = qobject_cast<VGECircle *>(shape);
+        circle->setCenter(std::move(first));
         circle->setRadius(rOuter);
-        circle->setName(name);
+        circle->setName(std::move(name));
         if (coef != 100.00) {
             circle->scale(coef / 100);
         }
     }
     else if (qobject_cast<VGEHypocycloid *>(shape)){
-        auto *hypo = qobject_cast<VGEHypocycloid *>(shape);
-        hypo->setCenter(first);
+        auto hypo = qobject_cast<VGEHypocycloid *>(shape);
+        hypo->setCenter(std::move(first));
         hypo->setRadiusOut(rOuter);
         hypo->setRadiusInn(rInner);
-        hypo->setName(name);
+        hypo->setName(std::move(name));
         if (coef != 100.00) {
             hypo->scale(coef / 100);
         }
     }
     else if (qobject_cast<VGEGroup *>(shape)){
-        auto *grp = qobject_cast<VGEGroup *>(shape);
-        grp->setName(name);
+        auto grp = qobject_cast<VGEGroup *>(shape);
+        grp->setName(std::move(name));
         if (coef != 100.00) {
             grp->scale(coef / 100);
         }
@@ -392,7 +403,8 @@ void VGEDocument::receiveParams(QString name, QColor color, qreal coef, QPointF 
 }
 
 
-void VGEDocument::deleteShape(VGEShape *shp) {
+void VGEDocument::deleteShape(VGEShape *shp)
+{
     if (!shp) {
         return;
     }
@@ -416,7 +428,8 @@ void VGEDocument::deleteShape(VGEShape *shp) {
 }
 
 
-void VGEDocument::selectShape(VGEShape *shp) {
+void VGEDocument::selectShape(VGEShape *shp)
+{
     if (!shp) {
         return;
     }

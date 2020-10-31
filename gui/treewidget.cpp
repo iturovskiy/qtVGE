@@ -2,7 +2,10 @@
 #include "ui_widget.h"
 
 
-TreeWidget::TreeWidget(QWidget *parent) :  QWidget(parent), ui(new Ui::Widget) {
+TreeWidget::TreeWidget(QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::Widget)
+{
      ui->setupUi(this);
      count = 0;
      ui->treeWidget->setColumnCount(1);
@@ -14,12 +17,14 @@ TreeWidget::TreeWidget(QWidget *parent) :  QWidget(parent), ui(new Ui::Widget) {
 }
 
 
-TreeWidget::~TreeWidget() {
+TreeWidget::~TreeWidget()
+{
     delete ui;
 }
 
 
-int TreeWidget::treeCount(QTreeWidget *tree, QTreeWidgetItem *parent = nullptr) {
+int TreeWidget::treeCount(QTreeWidget *tree, QTreeWidgetItem *parent = nullptr)
+{
     tree->expandAll();
     int count = 0;
     int childCount = parent ?  parent->childCount() : tree->topLevelItemCount();
@@ -34,7 +39,8 @@ int TreeWidget::treeCount(QTreeWidget *tree, QTreeWidgetItem *parent = nullptr) 
 }
 
 
-void TreeWidget::DeleteItem (QTreeWidgetItem *currentItem) {
+void TreeWidget::DeleteItem (QTreeWidgetItem *currentItem)
+{
     QTreeWidgetItem *parent = currentItem->parent();
     int index;
     if (parent) {
@@ -48,17 +54,19 @@ void TreeWidget::DeleteItem (QTreeWidgetItem *currentItem) {
 }
 
 
-void TreeWidget::InsertItem (QTreeWidgetItem *parent, QString text) {
+void TreeWidget::InsertItem (QTreeWidgetItem *parent, QString text)
+{
     if (parent->isExpanded()==false) {
         parent->setExpanded(true);
     }
     QTreeWidgetItem *newItem = new QTreeWidgetItem(parent, ui->treeWidget->currentItem());
-    newItem->setText (currentColumn, text);
+    newItem->setText(currentColumn, std::move(text));
     newItem->setExpanded(true);
 }
 
 
-VGEShape * TreeWidget::search(QString name) {
+VGEShape * TreeWidget::search(const QString &name)
+{
     for (auto &item : _shapeList) {
         if (name.compare(item->getName()) == 0) {
             return item;
@@ -76,14 +84,16 @@ VGEShape * TreeWidget::search(QString name) {
 }
 
 
-void TreeWidget::showAll(void) {
+void TreeWidget::showAll(void)
+{
      int cnt = treeCount (ui->treeWidget);
      QString str(tr("Всего: ")+QString("%1").arg(cnt));
      setWindowTitle(str);
 }
 
 
-void TreeWidget::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column) {
+void TreeWidget::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column)
+{
      currentItem = item;
      currentColumn = column;
      QString name = currentItem->text(0);
@@ -91,7 +101,8 @@ void TreeWidget::on_treeWidget_itemClicked(QTreeWidgetItem *item, int column) {
 }
 
 
-void TreeWidget::update(QList<VGEShape *> shapeList) {
+void TreeWidget::update(QList<VGEShape *> shapeList)
+{
     ui->treeWidget->clear();
     _shapeList = shapeList;
     QTreeWidgetItem *newItem;
@@ -101,7 +112,7 @@ void TreeWidget::update(QList<VGEShape *> shapeList) {
         newItem->setExpanded(true);
         if (qobject_cast<VGEGroup * >(item)) {
             auto grp = qobject_cast<VGEGroup * >(item);
-            for (auto it : grp->getList()) {
+            for (auto &it : grp->getList()) {
                 InsertItem(newItem, it->getName());
             }
         }
@@ -112,7 +123,8 @@ void TreeWidget::update(QList<VGEShape *> shapeList) {
 }
 
 
-void TreeWidget::on_pushButton_2_clicked() {
+void TreeWidget::on_pushButton_2_clicked()
+{
     if (currentItem) {
         QString name = currentItem->text(0);
         emit deleteShape(search(name));

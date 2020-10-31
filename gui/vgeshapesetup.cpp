@@ -1,7 +1,8 @@
 #include "vgeshapesetup.h"
 
 
-QColor colorFrom884(quint8 eightBit) {
+QColor colorFrom884(quint8 eightBit)
+{
     quint8 red8 = eightBit & 224;
     red8 = (red8 >> 5) * 255 / 7;
     quint8 green8 = eightBit & 28;
@@ -13,12 +14,14 @@ QColor colorFrom884(quint8 eightBit) {
 }
 
 
-inline quint8 colorTo844(QColor color){
+quint8 colorTo844(const QColor &color)
+{
     return (color.red() * 7 / 255) << 5 | (color.green() * 7 / 255) << 2 | (color.blue() * 3 / 255);
 }
 
 
-QPixmap pixmapFromColor(QColor color) {
+QPixmap pixmapFromColor(const QColor &color)
+{
     QPixmap pixmap(32, 32);
     pixmap.fill(color);
     return pixmap;
@@ -26,13 +29,14 @@ QPixmap pixmapFromColor(QColor color) {
 
 
 // line & rectangle
-VGEShapeSetUp::VGEShapeSetUp(QWidget *parent, vge::shapeType type, QColor color, QString name,
-QPointF first, QPointF last) : QMainWindow(parent),
-                               _shapeType(type),
-                               _name(name),
-                               _color(color),
-                               _newColor(color),
-                               _colorButton(new ColorButton(colorTo844(color)))
+VGEShapeSetUp::VGEShapeSetUp(QWidget *parent, vge::shapeType type, QColor color,
+                             QString name, const QPointF &first, const QPointF &last)
+    : QMainWindow(parent),
+      _shapeType(type),
+      _name(std::move(name)),
+      _color(std::move(color)),
+      _newColor(std::move(color)),
+      _colorButton(new ColorButton(colorTo844(color)))
 {
     init(first);
     _firstCoordXLabel->setText("First point: X");
@@ -58,14 +62,14 @@ QPointF first, QPointF last) : QMainWindow(parent),
 }
 
 // circle
-VGEShapeSetUp::VGEShapeSetUp(QWidget *parent,
-vge::shapeType type, QColor color, QString name, QPointF center,
-qreal radius) : QMainWindow(parent),
-                _shapeType(type),
-                _name(name),
-                _color(color),
-                _newColor(color),
-                _colorButton(new ColorButton(colorTo844(color)))
+VGEShapeSetUp::VGEShapeSetUp(QWidget *parent, vge::shapeType type, QColor color,
+                             QString name, const QPointF &center, qreal radius)
+    : QMainWindow(parent),
+      _shapeType(type),
+      _name(std::move(name)),
+      _color(std::move(color)),
+      _newColor(std::move(color)),
+      _colorButton(new ColorButton(colorTo844(color)))
 {
     init(center);
 
@@ -82,14 +86,14 @@ qreal radius) : QMainWindow(parent),
 }
 
 // hypo
-VGEShapeSetUp::VGEShapeSetUp(QWidget *parent,
-vge::shapeType type, QColor color, QString name, QPointF center,
-qreal oradius, qreal iradius) : QMainWindow(parent),
-                                _shapeType(type),
-                                _name(name),
-                                _color(color),
-                                _newColor(color),
-                                _colorButton(new ColorButton(colorTo844(color)))
+VGEShapeSetUp::VGEShapeSetUp(QWidget *parent, vge::shapeType type, QColor color,
+                             QString name, const QPointF &center, qreal oradius, qreal iradius)
+    : QMainWindow(parent),
+      _shapeType(type),
+      _name(std::move(name)),
+      _color(std::move(color)),
+      _newColor(std::move(color)),
+      _colorButton(new ColorButton(colorTo844(color)))
 {
     init(center);
     _firstCoordXLabel->setText("Center point: X");
@@ -113,13 +117,13 @@ qreal oradius, qreal iradius) : QMainWindow(parent),
 }
 
 
-VGEShapeSetUp::VGEShapeSetUp(QWidget *parent,
-vge::shapeType type, QColor color, QString name) : QMainWindow(parent),
-                                                   _shapeType(type),
-                                                   _name(name),
-                                                   _color(color),
-                                                   _newColor(color),
-                                                   _colorButton(new ColorButton(colorTo844(color)))
+VGEShapeSetUp::VGEShapeSetUp(QWidget *parent, vge::shapeType type, QColor color, QString name)
+    : QMainWindow(parent),
+      _shapeType(type),
+      _name(std::move(name)),
+      _color(std::move(color)),
+      _newColor(std::move(color)),
+      _colorButton(new ColorButton(colorTo844(color)))
 {
     _cancelButton->setText("&Cancel");
     _confirmButton->setText("&Confirm");
@@ -184,8 +188,8 @@ vge::shapeType type, QColor color, QString name) : QMainWindow(parent),
 }
 
 
-void VGEShapeSetUp::init(QPointF point) {
-
+void VGEShapeSetUp::init(const QPointF &point)
+{
     _firstCoordXLabel = new QLabel(this);
     _firstCoordXSpinBox = new QDoubleSpinBox(this);
     _firstCoordYLabel  = new QLabel(this);
@@ -268,14 +272,16 @@ void VGEShapeSetUp::init(QPointF point) {
 }
 
 
-void VGEShapeSetUp::showColorGrid() {
+void VGEShapeSetUp::showColorGrid()
+{
     _colorConsistency = false;
     _colorSelectionWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     _colorSelectionWidget->show();
 }
 
 
-void VGEShapeSetUp::hideColorGrid() {
+void VGEShapeSetUp::hideColorGrid()
+{
     qDebug() << "hiding collor grid";
     _colorConsistency = true;
     _colorSelectionWidget->hide();
@@ -292,7 +298,8 @@ void VGEShapeSetUp::hideColorGrid() {
 }
 
 
-void VGEShapeSetUp::saveColorGrid() {
+void VGEShapeSetUp::saveColorGrid()
+{
     qDebug() << "saving collor grid";
     _color = _newColor;
     _colorConsistency = true;
@@ -301,7 +308,8 @@ void VGEShapeSetUp::saveColorGrid() {
 }
 
 
-void VGEShapeSetUp::setColor(quint8 color) {
+void VGEShapeSetUp::setColor(quint8 color)
+{
     _newColor = colorFrom884(color);
     for (auto btn : _colorGridButtons){
         if (btn->getColor() != color){
@@ -311,7 +319,8 @@ void VGEShapeSetUp::setColor(quint8 color) {
 }
 
 
-void VGEShapeSetUp::save() {
+void VGEShapeSetUp::save()
+{
     QPointF first;
     QPointF last;
     if (_firstCoordXSpinBox && _firstCoordYSpinBox) {
@@ -328,16 +337,15 @@ void VGEShapeSetUp::save() {
 }
 
 
-void VGEShapeSetUp::cancel() {
+void VGEShapeSetUp::cancel()
+{
     hide();
     emit finished();
 }
 
 
-
-
-
-ColorButton::ColorButton(quint8 color) : m_color(color)
+ColorButton::ColorButton(quint8 color)
+    : m_color(color)
 {
     setFlat(true);
     setIcon(QIcon(pixmapFromColor(colorFrom884(m_color))));

@@ -8,12 +8,11 @@
 
 #include "configs.h"
 
-static quint32 count = 0;
-
 void bresenhamLine(const QPointF &fp, const QPointF &lp,
                    QVector<QPoint> &line,
                    bool clipped = false,
-                   QPointF cutFP = QPointF(0,0), QPointF cutLP = QPointF(vge::IMAGE_W, vge::IMAGE_W));
+                   const QPointF &cutFP = QPointF(0,0),
+                   const QPointF &cutLP = QPointF(vge::IMAGE_W, vge::IMAGE_W));
 
 void bresenhamCirclePoints(const QPointF &center, qreal radius, QVector<QPoint> &ellipse);
 
@@ -43,15 +42,15 @@ class VGEShape : public QObject {
     Q_OBJECT
 
 public:
-    explicit VGEShape(QObject *parent = nullptr,
-                      QColor color = vge::SHAPE_DEFAULT_COLOR) :
-                      QObject(parent), _color(color)
-                      { _number = count++; }
+    explicit VGEShape(QObject *parent = nullptr, QColor color = vge::SHAPE_DEFAULT_COLOR)
+        : QObject(parent),
+          _color(std::move(color))
+    { _number++; }
 
     virtual ~VGEShape()
     { delete _shapePoints; if (_raster) delete _raster; }
 
-    virtual void move(QPointF displacement) = 0;
+    virtual void move(const QPointF & displacement) = 0;
     virtual void scale(qreal coefficeint) = 0;
     virtual void handleMousePressEvent(QMouseEvent *event) = 0;
     virtual void handleMouseMoveEvent(QMouseEvent *event) = 0;
@@ -59,11 +58,11 @@ public:
     virtual VGERShape& getRaster() = 0;
     virtual void draw() = 0;
 
-    virtual void clip(QPointF fp, QPointF lp);
-    bool clipContains(QPointF point);
-    void clipMove(QPointF displacement);
+    virtual void clip(const QPointF &fp, const QPointF &lp);
+    bool clipContains(const QPointF &point);
+    void clipMove(const QPointF &displacement);
     void clipScale(qreal coefficeint);
-    int test(QPoint point);
+    int test(const QPoint &point);
 
     virtual bool isReady()
     { return !_isMousePressed; }
@@ -82,14 +81,14 @@ public:
     inline bool isSelected() const
     { return _isSelected; }
 
-    void setColor(const QColor &newColor)
-    { _color = newColor; draw(); }
+    void setColor(QColor newColor)
+    { _color = std::move(newColor); draw(); }
 
-    void setPoints(QVector<QPoint> *point)
-    { delete _shapePoints; std::swap(_shapePoints, point); }
+    void setPoints(QVector<QPoint> *points)
+    { delete _shapePoints; _shapePoints = points; }
 
     void setName(QString name)
-    { _name = name; }
+    { _name = std::move(name); }
 
 
 protected:
@@ -100,7 +99,7 @@ protected:
     bool _clipped = false;
     bool _isMousePressed = false;
     bool _isSelected = false;
-    quint32 _number;
+    static quint32 _number;
     QString _name;
 };
 

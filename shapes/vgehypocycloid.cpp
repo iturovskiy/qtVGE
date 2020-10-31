@@ -4,18 +4,19 @@
 #include <QtMath>
 
 
-VGEHypocycloid::VGEHypocycloid(QObject *parent, QColor color, QPointF center,
-                               qreal radiusOut, qreal radiusInn) : VGEShape(parent, color),
-                                                                   _center(center),
-                                                                   _radiusOut(radiusOut),
-                                                                   _radiusInn(radiusInn)
+VGEHypocycloid::VGEHypocycloid(QObject *parent, QColor color, QPointF center, qreal radiusOut, qreal radiusInn)
+    : VGEShape(parent, std::move(color)),
+      _center(std::move(center)),
+      _radiusOut(radiusOut),
+      _radiusInn(radiusInn)
 {
-    _name = QString::fromStdString(std::string("hypo") + std::to_string(count++));
+    _name = QString::fromStdString(std::string("hypo") + std::to_string(_number));
     draw();
 }
 
 
-void VGEHypocycloid::move(QPointF displacement) {
+void VGEHypocycloid::move(const QPointF &displacement)
+{
     _center.rx() += displacement.x();
     _center.ry() += displacement.y();
     clipMove(displacement);
@@ -23,7 +24,8 @@ void VGEHypocycloid::move(QPointF displacement) {
 }
 
 
-void VGEHypocycloid::scale(qreal coefficeint) {
+void VGEHypocycloid::scale(qreal coefficeint)
+{
     auto xmin = _center.x() - _radiusOut;
     auto ymin = _center.y() - _radiusOut;
     _center.rx() += (_center.x() - xmin) * (coefficeint - 1);
@@ -35,7 +37,8 @@ void VGEHypocycloid::scale(qreal coefficeint) {
 }
 
 
-void VGEHypocycloid::handleMousePressEvent(QMouseEvent * event) {
+void VGEHypocycloid::handleMousePressEvent(QMouseEvent * event)
+{
     qDebug() << __FUNCTION__ << "_pressCount : " << _pressCount;
     if (_pressCount == 0) {
         _center = event->pos();
@@ -45,9 +48,9 @@ void VGEHypocycloid::handleMousePressEvent(QMouseEvent * event) {
 }
 
 
-void VGEHypocycloid::handleMouseMoveEvent(QMouseEvent * event) {
-    QPointF pos;
-    pos = event->pos();
+void VGEHypocycloid::handleMouseMoveEvent(QMouseEvent * event)
+{
+    QPointF pos = event->pos();
     if (_pressCount == 0) {
         _radiusOut = sqrt((pos.x() - _center.x()) * (pos.x() - _center.x())
                      + (pos.y() - _center.y()) * (pos.y() - _center.y()));
@@ -60,10 +63,10 @@ void VGEHypocycloid::handleMouseMoveEvent(QMouseEvent * event) {
 }
 
 
-void VGEHypocycloid::handleMouseReleaseEvent(QMouseEvent * event) {
+void VGEHypocycloid::handleMouseReleaseEvent(QMouseEvent * event)
+{
     qDebug() << __FUNCTION__ << "_pressCount : " << _pressCount;
-    QPointF pos;
-    pos = event->pos();
+    QPointF pos = event->pos();
     if (_pressCount == 0) {
         _radiusOut = sqrt((pos.x() - _center.x()) * (pos.x() - _center.x())
                           + (pos.y() - _center.y()) * (pos.y() - _center.y()));
@@ -81,7 +84,8 @@ void VGEHypocycloid::handleMouseReleaseEvent(QMouseEvent * event) {
 }
 
 
-void VGEHypocycloid::draw() {
+void VGEHypocycloid::draw()
+{
     QColor drawColor;
     if (_isSelected){
         drawColor = QColor(0xFF - _color.red(), 0xFF - _color.green(), 0xFF - _color.blue(), 0xFF);
@@ -111,7 +115,9 @@ void VGEHypocycloid::draw() {
     _raster = new VGERShape(_shapePoints, drawColor);
 }
 
-void VGEHypocycloid::hypocycloidPoints(QVector<QPoint> &hypo) {
+
+void VGEHypocycloid::hypocycloidPoints(QVector<QPoint> &hypo)
+{
     const int x0 = static_cast<int>(_center.x());
     const int y0 = static_cast<int>(_center.y());
     const double k = _radiusOut / _radiusInn;
@@ -131,7 +137,8 @@ void VGEHypocycloid::hypocycloidPoints(QVector<QPoint> &hypo) {
 }
 
 
-int VGEHypocycloid::NOD(int a, int b) {
+int VGEHypocycloid::NOD(int a, int b)
+{
     while (a != b) {
         if (a > b)
             a -= b;
@@ -142,7 +149,8 @@ int VGEHypocycloid::NOD(int a, int b) {
 }
 
 
-VGERShape& VGEHypocycloid::getRaster() {
+VGERShape& VGEHypocycloid::getRaster()
+{
     if (!_raster) {
         draw();
     }

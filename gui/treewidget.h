@@ -44,7 +44,7 @@ private:
     void DeleteItem (QTreeWidgetItem *currentItem);
     void InsertItem (QTreeWidgetItem *, QString);
     void showAll(void);
-    VGEShape * search(QString name);
+    VGEShape * search(const QString &name);
 
 
 private:

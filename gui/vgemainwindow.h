@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "vgedocument.h"
-#include "../configs.h"
+#include "configs.h"
 #include "treewidget.h"
 
 #include <QList>
@@ -53,8 +53,8 @@ public:
 
 
 public slots:
-    void coordUpdate(QPoint coord);
-    void modeUpdate(vge::editorMode);
+    void coordUpdate(const QPoint &coord);
+    void modeUpdate(vge::editorMode moder);
     void resetToSelection();
     void putMessage(QString text, bool isError);
     void openNewWindow(QWidget * window);
@@ -62,7 +62,7 @@ public slots:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
-    void initToolbar(QToolBar*, QList<ToolPair>, Qt::ToolBarArea);
+    void initToolbar(QToolBar *toolBar, const QList<ToolPair> &elements, Qt::ToolBarArea area);
     void initToolsList();
 
 

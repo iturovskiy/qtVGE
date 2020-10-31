@@ -2,14 +2,17 @@
 #include "vgeshape.h"
 
 
-VGEGroup::VGEGroup(QObject *parent, QColor color, QList<VGEShape *> shList) :
-VGEShape(parent, color), _shList(std::move(shList)) {
-    _name = QString::fromStdString(std::string("newgroup") + std::to_string(count++));
+VGEGroup::VGEGroup(QObject *parent, QColor color, QList<VGEShape *> shList)
+    : VGEShape(parent, std::move(color)),
+      _shList(std::move(shList))
+{
+    _name = QString::fromStdString(std::string("newgroup") + std::to_string(_number));
     draw();
 }
 
 
-void VGEGroup::clip(QPointF fp, QPointF lp) {
+void VGEGroup::clip(const QPointF &fp, const QPointF &lp)
+{
     if(!_clipped) {
         _cutFP = fp;
         _cutLP = lp;
@@ -22,31 +25,34 @@ void VGEGroup::clip(QPointF fp, QPointF lp) {
         _cutLP = QPointF(std::min<qreal>(std::max<qreal>(_cutFP.x(), _cutLP.x()), std::max<qreal>(fp.x(), lp.x())),
                          std::min<qreal>(std::max<qreal>(_cutFP.y(), _cutLP.y()), std::max<qreal>(fp.y(), lp.y())));
     }
-    for (auto &item : _shList) {
+    for (auto item : _shList) {
         item->clip(fp, lp);
     }
     draw();
 }
 
 
-void VGEGroup::move(QPointF displacement) {
-    for (auto &item : _shList) {
+void VGEGroup::move(const QPointF &displacement)
+{
+    for (auto item : _shList) {
         item->move(displacement);
     }
     draw();
 }
 
 
-void VGEGroup::scale(qreal coefficeint) {
-    for (auto &item : _shList) {
+void VGEGroup::scale(qreal coefficeint)
+{
+    for (auto item : _shList) {
         item->scale(coefficeint);
     }
     draw();
 }
 
 
-void VGEGroup::handleMousePressEvent(QMouseEvent * event) {
-    for (auto &item : _shList) {
+void VGEGroup::handleMousePressEvent(QMouseEvent * event)
+{
+    for (auto item : _shList) {
         item->handleMousePressEvent(event);
     }
     _isMousePressed = true;
@@ -54,16 +60,18 @@ void VGEGroup::handleMousePressEvent(QMouseEvent * event) {
 }
 
 
-void VGEGroup::handleMouseMoveEvent(QMouseEvent * event) {
-    for (auto &item : _shList) {
+void VGEGroup::handleMouseMoveEvent(QMouseEvent * event)
+{
+    for (auto item : _shList) {
         item->handleMouseMoveEvent(event);
     }
     draw();
 }
 
 
-void VGEGroup::handleMouseReleaseEvent(QMouseEvent * event) {
-    for (auto &item : _shList) {
+void VGEGroup::handleMouseReleaseEvent(QMouseEvent * event)
+{
+    for (auto item : _shList) {
         item->handleMouseReleaseEvent(event);
     }
     _isMousePressed = false;
@@ -71,7 +79,8 @@ void VGEGroup::handleMouseReleaseEvent(QMouseEvent * event) {
 }
 
 
-VGERShape& VGEGroup::getRaster() {
+VGERShape& VGEGroup::getRaster()
+{
     if (!_raster) {
         draw();
     }
@@ -79,7 +88,8 @@ VGERShape& VGEGroup::getRaster() {
 }
 
 
-void VGEGroup::draw() {
+void VGEGroup::draw()
+{
     QColor drawColor;
     if (_isSelected){
         drawColor = QColor(0xFF - _color.red(), 0xFF - _color.green(), 0xFF - _color.blue(), 0xFF);
@@ -105,7 +115,8 @@ void VGEGroup::draw() {
 }
 
 
-void VGEGroup::add(VGEShape * shape) {
+void VGEGroup::add(VGEShape * shape)
+{
     if (std::find(_shList.begin(), _shList.end(), shape) == _shList.end()) {
         _shList.append(shape);
     }
@@ -113,7 +124,8 @@ void VGEGroup::add(VGEShape * shape) {
 
 
 
-void VGEGroup::del(QString name) {
+void VGEGroup::del(const QString &name)
+{
     int index = 0;
     for (auto it : _shList) {
         if (name.compare(it->getName()) == 0) {

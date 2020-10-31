@@ -3,14 +3,18 @@
 #include <QtMath>
 
 
-VGERectangle::VGERectangle(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint) :
-VGEShape(parent, color), _firstPoint(firstPoint), _lastPoint(lastPoint) {
-    _name = QString::fromStdString(std::string("rectangle") + std::to_string(count++));
+VGERectangle::VGERectangle(QObject *parent, QColor color, QPointF firstPoint, QPointF lastPoint)
+    : VGEShape(parent, std::move(color)),
+      _firstPoint(std::move(firstPoint)),
+      _lastPoint(std::move(lastPoint))
+{
+    _name = QString::fromStdString(std::string("rectangle") + std::to_string(_number));
     draw();
 }
 
 
-void VGERectangle::move(QPointF displacement) {
+void VGERectangle::move(const QPointF &displacement)
+{
     _firstPoint.rx() += displacement.x();
     _firstPoint.ry() += displacement.y();
     _lastPoint.rx() += displacement.x();
@@ -20,7 +24,8 @@ void VGERectangle::move(QPointF displacement) {
 }
 
 
-void VGERectangle::scale(qreal coefficeint) {
+void VGERectangle::scale(qreal coefficeint)
+{
     auto xmin = std::min<qreal>(_firstPoint.x(), _lastPoint.x());
     auto ymin = std::min<qreal>(_firstPoint.y(), _lastPoint.y());
     _firstPoint.rx() += (_firstPoint.x() - xmin) * (coefficeint - 1);
@@ -32,7 +37,8 @@ void VGERectangle::scale(qreal coefficeint) {
 }
 
 
-void VGERectangle::handleMousePressEvent(QMouseEvent * event) {
+void VGERectangle::handleMousePressEvent(QMouseEvent * event)
+{
     _firstPoint = event->pos();
     _lastPoint = event->pos();
     _isMousePressed = true;
@@ -40,20 +46,23 @@ void VGERectangle::handleMousePressEvent(QMouseEvent * event) {
 }
 
 
-void VGERectangle::handleMouseMoveEvent(QMouseEvent * event) {
+void VGERectangle::handleMouseMoveEvent(QMouseEvent * event)
+{
     _lastPoint = event->pos();
     draw();
 }
 
 
-void VGERectangle::handleMouseReleaseEvent(QMouseEvent * event) {
+void VGERectangle::handleMouseReleaseEvent(QMouseEvent * event)
+{
     _lastPoint = event->pos();
     _isMousePressed = false;
     draw();
 }
 
 
-void VGERectangle::draw() {
+void VGERectangle::draw()
+{
     QColor drawColor;
     if (_isSelected){
         drawColor = QColor(0xFF - _color.red(), 0xFF - _color.green(), 0xFF - _color.blue(), 0xFF);
@@ -100,7 +109,8 @@ void VGERectangle::draw() {
 }
 
 
-VGERShape& VGERectangle::getRaster() {
+VGERShape& VGERectangle::getRaster()
+{
     if (!_raster) {
         draw();
     }
